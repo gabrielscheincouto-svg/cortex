@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/cecopel/api/internal/auth"
-	"github.com/cecopel/api/internal/repo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
