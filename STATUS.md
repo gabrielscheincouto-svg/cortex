@@ -50,30 +50,62 @@
 - Tests do `identifier.rs` e parsers do robô.
 - Vercel preview automático em PRs.
 
-## Como subir do zero
+## Como subir do zero (ambiente já provisionado em 2026-05-12)
+
+**Provisionamento JÁ feito:**
+- ✅ Repo `gabrielscheincouto-svg/cortex` populado no GitHub
+- ✅ Supabase `cortex saas` (ref `ocbohmnmqtnrcwgvenus`, us-west-1): 29 migrations rodadas, 57 tabelas, 40 enums, 108 RLS policies, 18 funções, 6 storage buckets, 3 planos seed, 10 conquistas seed
+- ✅ Auth Site URL = `http://localhost:3000`; Redirect URLs = `localhost:3000/**` e `localhost:3001/**`
+- ✅ `.env` files preenchidos localmente em `api/`, `web/`, `admin/` (não vão pro repo — `.gitignore` protege)
+
+**Subir os serviços no Mac:**
 
 ```bash
-# 1. Aplicar migrations no Supabase
-cd infra/supabase
-ls migrations/*.sql | sort | xargs -I {} psql $DATABASE_URL -f {}
+# 1. API Go (terminal 1)
+cd api && go run ./cmd/api        # → http://localhost:8080
 
-# 2. API Go
-cd api
-cp .env.example .env  # preencher SUPABASE_JWT_SECRET, DATABASE_URL
-go run ./cmd/api
+# 2. Web (terminal 2)
+cd web && npm install && npm run dev   # → http://localhost:3000
 
-# 3. Web Next
-cd web
-cp .env.example .env.local  # NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_API_URL
-npm install
-npm run dev  # http://localhost:3000
+# 3. Admin (terminal 3)
+cd admin && npm install && npm run dev # → http://localhost:3001
 
-# 4. Admin Next
-cd admin && npm install && npm run dev  # http://localhost:3001
-
-# 5. Robô Tauri (opcional pra dev — só pra clientes finais)
+# 4. Robô Tauri (terminal 4 — opcional pra teste de upload)
 cd robot && npm install && npm run tauri dev
 ```
+
+**Primeiro login:**
+1. Abre http://localhost:3000
+2. Clica em "Cadastre-se" e usa um email seu (recebe magic link)
+3. Pelo dashboard do Supabase (Authentication → Users) você vê seu user com `id`
+4. Roda o SQL abaixo no SQL Editor pra criar uma org de demo e te vincular como admin:
+
+```sql
+WITH novo_org AS (
+  INSERT INTO public.orgs (slug, nome, cor_primaria, plano_id, status)
+  SELECT 'cortex-demo', 'Cortex Demo', '#22C55E', p.id, 'ativo'
+  FROM public.planos p WHERE p.codigo = 'pro' LIMIT 1
+  RETURNING id
+)
+INSERT INTO public.org_membros (org_id, user_id, role, status)
+SELECT n.id, '<COLA-SEU-USER-UUID-AQUI>', 'admin', 'ativo' FROM novo_org n;
+
+UPDATE public.profiles SET current_org_id = (SELECT id FROM public.orgs WHERE slug = 'cortex-demo')
+WHERE id = '<COLA-SEU-USER-UUID-AQUI>';
+```
+
+## Deploy em produção (próximos passos quando quiser)
+
+| Componente | Plataforma sugerida | Status |
+|---|---|---|
+| `web/` + `admin/` | Vercel (já tem `vercel.json`) | Faltam logar e clicar "Import from GitHub" |
+| `api/` (Go + WS) | Fly.io ou Railway | Já tem `Dockerfile` em `api/` |
+| `robot/` Tauri | Build local + distribuir .dmg/.exe | Sem deploy externo |
+
+Quando subir, lembre de:
+- Atualizar Auth Redirect URLs no Supabase para os domínios de produção
+- Atualizar `CORS_ALLOWED_ORIGINS` no `.env` da API
+- Atualizar `NEXT_PUBLIC_API_URL` nos `.env.local` dos frontends
 
 ## Atalhos no app
 
