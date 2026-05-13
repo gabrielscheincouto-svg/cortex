@@ -1,6 +1,18 @@
-# Estado do Usecortex — 2026-05-12
+# Estado do Usecortex — 2026-05-13
 
 > Snapshot do que está pronto e o que vem a seguir. Atualizar a cada sprint.
+
+## 🚀 Em produção
+
+| Componente   | URL | Plataforma |
+|---|---|---|
+| Web (escritório) | https://usecortex-app.netlify.app | Netlify (auto-deploy em push) |
+| Admin (super-admin) | https://usecortex-admin.netlify.app | Netlify (auto-deploy em push) |
+| API Go | https://cortex-production-f46c.up.railway.app | Railway (auto-deploy em push) |
+| Banco / Auth / Storage | `cortex saas` (`ocbohmnmqtnrcwgvenus`) | Supabase Pro · us-west-1 |
+| Código | https://github.com/gabrielscheincouto-svg/cortex | GitHub |
+
+CORS: API libera os 2 domínios Netlify + localhost:3000/3001. Auth redirect URLs no Supabase: `localhost:3000/**` e `localhost:3001/**`. **Atualize pra incluir os domínios Netlify** em https://supabase.com/dashboard/project/ocbohmnmqtnrcwgvenus/auth/url-configuration quando puder.
 
 ## ✅ MVP pronto pra subir
 
