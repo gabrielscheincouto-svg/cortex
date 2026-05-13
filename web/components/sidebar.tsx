@@ -12,24 +12,25 @@ interface NavItem {
   href: string
   label: string
   icon: LucideIcon
-  modulo?: string   // se preenchido, só aparece se org tem o módulo ativo
+  modulo?: string         // se preenchido, só aparece se org tem o módulo ativo
   adminOnly?: boolean
+  prefetch?: boolean      // só prefetch nas top rotas (caminho mais comum)
 }
 
 const items: NavItem[] = [
-  { href: '/home',          label: 'Home',          icon: Home },
-  { href: '/kanban',        label: 'Kanban',        icon: KanbanSquare,    modulo: 'kanban' },
-  { href: '/entregas',      label: 'Entregas',      icon: ClipboardCheck, modulo: 'entregas' },
-  { href: '/empresas',      label: 'Empresas',      icon: Building2,      modulo: 'empresas' },
+  { href: '/home',          label: 'Home',          icon: Home,              prefetch: true },
+  { href: '/kanban',        label: 'Kanban',        icon: KanbanSquare,      modulo: 'kanban',       prefetch: true },
+  { href: '/entregas',      label: 'Entregas',      icon: ClipboardCheck,    modulo: 'entregas',     prefetch: true },
+  { href: '/empresas',      label: 'Empresas',      icon: Building2,         modulo: 'empresas' },
   { href: '/solicitacoes',  label: 'Solicitações',  icon: MessageSquareText, modulo: 'solicitacoes' },
-  { href: '/mural',         label: 'Mural',         icon: Newspaper,      modulo: 'mural' },
-  { href: '/chat',          label: 'Chat',          icon: MessagesSquare, modulo: 'chat' },
-  { href: '/dashboards',    label: 'Dashboards',    icon: BarChart3,      modulo: 'dashboards' },
-  { href: '/balancete',     label: 'Balancete',     icon: BarChart3,      modulo: 'contabil' },
-  { href: '/conquistas',    label: 'Conquistas',    icon: Trophy,         modulo: 'gamificacao' },
-  { href: '/rh/frequencia', label: 'Frequência',     icon: Users,          modulo: 'rh' },
-  { href: '/obrigacoes',    label: 'Obrigações',    icon: FileText,       modulo: 'obrigacoes' },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings,       adminOnly: true },
+  { href: '/mural',         label: 'Mural',         icon: Newspaper,         modulo: 'mural' },
+  { href: '/chat',          label: 'Chat',          icon: MessagesSquare,    modulo: 'chat' },
+  { href: '/dashboards',    label: 'Dashboards',    icon: BarChart3,         modulo: 'dashboards' },
+  { href: '/balancete',     label: 'Balancete',     icon: BarChart3,         modulo: 'contabil' },
+  { href: '/conquistas',    label: 'Conquistas',    icon: Trophy,            modulo: 'gamificacao' },
+  { href: '/rh/frequencia', label: 'Frequência',    icon: Users,             modulo: 'rh' },
+  { href: '/obrigacoes',    label: 'Obrigações',    icon: FileText,          modulo: 'obrigacoes' },
+  { href: '/configuracoes', label: 'Configurações', icon: Settings,          adminOnly: true },
 ]
 
 export function Sidebar({
@@ -67,7 +68,7 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
-              prefetch={false}
+              prefetch={item.prefetch ?? false}
               className={cn(
                 'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 active ? 'bg-ink-900 text-white font-medium' : 'text-ink-700 hover:bg-ink-50'
