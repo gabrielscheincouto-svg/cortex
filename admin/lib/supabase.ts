@@ -8,7 +8,6 @@
  */
 
 import { createBrowserClient as _createBrowserClient, createServerClient as _createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -18,8 +17,11 @@ export function createBrowserClient() {
   return _createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 }
 
-/** Use em Server Components, Server Actions e Route Handlers. */
+/** Use em Server Components, Server Actions e Route Handlers.
+ *  Dynamic require de next/headers para evitar leak em Client Components. */
 export function createServerClient() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { cookies } = require('next/headers') as typeof import('next/headers')
   const cookieStore = cookies()
   return _createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
