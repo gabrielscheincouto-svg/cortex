@@ -20,16 +20,22 @@ export async function middleware(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isPublic = req.nextUrl.pathname === '/login' || req.nextUrl.pathname.startsWith('/auth')
+  const path = req.nextUrl.pathname
+  const isLogin    = path === '/login'
+  const isAuth     = path.startsWith('/auth')
+  const isPortal   = path.startsWith('/portal/')    // portal do cliente final tem auth próprio
+  const isPublic   = isLogin || isAuth || isPortal
 
+  // Não autenticado fora das áreas públicas → manda pra login do escritório
   if (!user && !isPublic) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('next', req.nextUrl.pathname)
+    url.searchParams.set('next', path)
     return NextResponse.redirect(url)
   }
 
-  if (user && req.nextUrl.pathname === '/login') {
+  // Logado tentando ir pro login do escritório → manda pra home (escritório)
+  if (user && path === '/login') {
     return NextResponse.redirect(new URL('/home', req.url))
   }
 

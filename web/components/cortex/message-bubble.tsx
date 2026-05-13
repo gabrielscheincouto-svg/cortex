@@ -1,16 +1,18 @@
 import { cn } from '@/lib/utils'
+import { CortexOrb } from './orb'
 
 /**
- * Avatar do Cortex — símbolo oficial do brandbook (maio/2026).
- * É um "C" formado por nós conectados em rede:
- *   verde (saúde / sistema) em cima
- *   violeta (inteligência) embaixo
- *   dourado (gamificação) como nó de transição
- *
- * Quando o assistente está "pensando" (prop `pulsando`), os nós do hemisfério
- * violeta pulsam — efeito sutil de "sinapse ativa".
+ * Avatar do Cortex — orb 3D animado (brandbook v2, maio/2026).
+ * Wrapper sobre <CortexOrb> com a API que o drawer/launcher esperam.
+ * `pulsando = true` → modo thinking (animação mais rápida).
  */
 export function CortexAvatar({ size = 36, pulsando = false }: { size?: number; pulsando?: boolean }) {
+  return <CortexOrb size={size} mode={pulsando ? 'thinking' : 'cortex'} />
+}
+
+// Versão legada do avatar (C-em-rede). Mantida pra fallback caso algum lugar
+// chame especificamente. Use `CortexOrb` direto em UI nova.
+export function CortexAvatarLegacy({ size = 36, pulsando = false }: { size?: number; pulsando?: boolean }) {
   const animClass = pulsando ? 'animate-pulse' : ''
   return (
     <svg

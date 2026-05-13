@@ -1,11 +1,15 @@
 import Link from 'next/link'
 import {
-  Flame, Award, Bell, Settings, ShieldCheck, AlertTriangle, Star, MessageCircle, Newspaper, MessagesSquare, Plus, Edit,
+  Flame, Award, Bell, Settings, ShieldCheck, AlertTriangle, Star, MessageCircle, Newspaper, MessagesSquare, Plus, Edit, Sparkles,
 } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase'
 import { loadOrgContext } from '@/lib/modulos'
 import { Card, Stat, Avatar, Pill, Button, Empty } from '@/components/ui'
 import { saudacao, dateLongBR, timeBR, ago } from '@/lib/utils'
+import { CortexOrb } from '@/components/cortex/orb'
+
+// força revalidação curta — evita 503 do RSC e dá cache leve no Netlify Edge
+export const revalidate = 30
 
 // Mapa de ícones por código de conquista — ajuda dar consistência sem chamadas extras
 const conquistaIcon: Record<string, { Icon: any; classes: string }> = {
@@ -69,15 +73,39 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
-      {/* Saudação */}
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-ink-500">{dateLongBR(new Date())} · {timeBR(new Date())}</p>
-          <h1 className="mt-1 text-2xl font-semibold text-ink-900">{saudacao()}, {nome.split(' ')[0] || 'colaborador'}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" icon={Bell} size="sm" aria-label="Notificações" />
-          <Button variant="ghost" icon={Settings} size="sm" aria-label="Configurações" />
+      {/* ── Hero do Cortex — orb 3D animado + saudação ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-mind-200 bg-gradient-to-br from-ink-900 via-mind-900 to-ink-900 px-8 py-10 text-white">
+        {/* Glow decorativo de fundo */}
+        <div aria-hidden className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-mind-500/20 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-20 -bottom-20 h-72 w-72 rounded-full bg-brand-500/15 blur-3xl" />
+
+        <div className="relative flex flex-wrap items-center gap-8">
+          {/* Lado esquerdo: copy */}
+          <div className="min-w-[260px] flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-mind-200">{dateLongBR(new Date())} · {timeBR(new Date())}</p>
+            <h1 className="mt-2 font-display text-4xl leading-tight">
+              {saudacao()},<br/>{nome.split(' ')[0] || 'colaborador'}
+            </h1>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-mind-100/90">
+              O Cortex está acompanhando suas entregas em tempo real. Você tem
+              <span className="mx-1 inline-flex items-baseline gap-1"><span className="text-xl font-semibold text-white">{entregasPendentes ?? 0}</span><span className="text-xs">pendentes</span></span>
+              e
+              <span className="mx-1 inline-flex items-baseline gap-1"><span className="text-xl font-semibold text-brand-400">{percNoPrazo ?? 0}%</span><span className="text-xs">no prazo este mês</span></span>.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link href="/entregas">
+                <Button size="sm" variant="primary" className="bg-mind-500 hover:bg-mind-600 border-0">Abrir minhas entregas</Button>
+              </Link>
+              <Button size="sm" variant="ghost" icon={Sparkles} className="text-mind-100 hover:bg-white/10 ring-1 ring-white/15">
+                Cmd+K · Cortex Quick
+              </Button>
+            </div>
+          </div>
+
+          {/* Lado direito: orb 3D animado */}
+          <div className="mx-auto shrink-0">
+            <CortexOrb size={260} mode="cortex" />
+          </div>
         </div>
       </div>
 
