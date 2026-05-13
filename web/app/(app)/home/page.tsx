@@ -119,18 +119,18 @@ export default async function HomePage() {
   return (
     <div className="space-y-5">
       {/* ── Header denso: saudação + ações ── */}
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
             {dateLongBR(agora)}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-ink-900">
+          <h1 className="mt-1 text-xl font-semibold text-ink-900 sm:text-2xl">
             {saudacao()}, {nome.split(' ')[0] || 'colaborador'}
           </h1>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="ghost" icon={Sparkles} className="ring-1 ring-mind-200">
-            Cmd+K
+            <span className="hidden sm:inline">Cmd+K</span>
           </Button>
           <Button size="sm" variant="ghost" icon={Bell} aria-label="Notificações" />
         </div>

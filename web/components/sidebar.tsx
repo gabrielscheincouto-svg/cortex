@@ -50,7 +50,7 @@ export function Sidebar({
   })
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-black/10 bg-white">
+    <aside className="flex h-full w-60 flex-col border-r border-black/10 bg-white">
       <div className="flex items-center gap-3 px-5 pt-5 pb-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg text-white text-sm font-bold"
              style={{ backgroundColor: corPrimaria }}>

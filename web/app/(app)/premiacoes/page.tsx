@@ -83,7 +83,10 @@ export default async function PremiacoesPage() {
 
       {/* Tabela */}
       <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
-        <table className="w-full text-sm">
+        <p className="border-b border-black/5 bg-ink-50 px-3 py-1.5 text-[11px] text-ink-500 sm:hidden">
+          Role lateralmente para ver todas as colunas →
+        </p>
+        <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-black/10 text-left text-[11px] font-semibold uppercase tracking-wider text-ink-500">
               <th className="px-4 py-3">Funcionário</th>

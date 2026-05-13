@@ -51,6 +51,9 @@ export function MatrizControle({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+      <p className="border-b border-black/5 bg-ink-50 px-3 py-1.5 text-[11px] text-ink-500 sm:hidden">
+        Role lateralmente para ver todos os meses →
+      </p>
       <table className="w-full text-sm" style={{ minWidth: 1000 }}>
         <thead>
           <tr className="bg-ink-900 text-white">

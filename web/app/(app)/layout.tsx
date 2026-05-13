@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase'
 import { loadOrgContext, listMyOrgs } from '@/lib/modulos'
 import { Sidebar } from '@/components/sidebar'
 import { Topbar } from '@/components/topbar'
+import { AppShell } from '@/components/app-shell'
 import { CortexLauncher } from '@/components/cortex/launcher'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -36,24 +37,29 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isAdminEscritorio = ctx.my_role === 'admin' || ctx.my_role === 'gerente'
 
   return (
-    <div className="min-h-screen">
-      <Sidebar
-        modulosAtivos={ctx.modulos_ativos}
-        isAdminEscritorio={isAdminEscritorio}
-        orgNome={ctx.org_nome}
-        corPrimaria={ctx.cor_primaria}
-      />
-      <div className="ml-60">
-        <Topbar
-          userName={profile?.nome ?? user.email ?? ''}
-          userEmail={profile?.email ?? user.email ?? ''}
-          orgs={orgs.map(o => ({ id: o.id!, nome: o.nome!, cor_primaria: o.cor_primaria! }))}
-          currentOrgId={ctx.org_id}
-        />
-        <main className="p-8">{children}</main>
-      </div>
+    <>
+      <AppShell
+        sidebar={
+          <Sidebar
+            modulosAtivos={ctx.modulos_ativos}
+            isAdminEscritorio={isAdminEscritorio}
+            orgNome={ctx.org_nome}
+            corPrimaria={ctx.cor_primaria}
+          />
+        }
+        topbar={
+          <Topbar
+            userName={profile?.nome ?? user.email ?? ''}
+            userEmail={profile?.email ?? user.email ?? ''}
+            orgs={orgs.map(o => ({ id: o.id!, nome: o.nome!, cor_primaria: o.cor_primaria! }))}
+            currentOrgId={ctx.org_id}
+          />
+        }
+      >
+        {children}
+      </AppShell>
       <CortexLauncher token={session?.access_token} enabled={ctx.modulos_ativos.includes('ai')} />
-    </div>
+    </>
   )
 }
 
