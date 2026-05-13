@@ -1,0 +1,28 @@
+# Binários
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Cobertura
+*.out
+*.test
+coverage.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Air (live-reload em dev)
+tmp/

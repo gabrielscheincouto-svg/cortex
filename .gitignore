@@ -1,0 +1,81 @@
+# ── Segredos ──────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+!**/.env.example
+*.pem
+*.key
+*-credentials.json
+service-account*.json
+
+# ── Node / Next ───────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+.turbo/
+.vercel/
+*.log
+npm-debug.log*
+yarn-error.log
+.pnpm-debug.log*
+
+# ── TypeScript ────────────────────────────────────────────────────
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Go ────────────────────────────────────────────────────────────
+api/bin/
+api/dist/
+api/coverage.out
+api/*.test
+api/*.out
+/vendor/
+
+# ── Rust / Tauri ──────────────────────────────────────────────────
+robot/src-tauri/target/
+robot/target/
+robot/dist/
+**/*.rs.bk
+Cargo.lock.bak
+
+# ── Sistema operacional ───────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ── IDEs ──────────────────────────────────────────────────────────
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# ── Supabase ──────────────────────────────────────────────────────
+infra/supabase/.branches/
+infra/supabase/.temp/
+supabase/.branches/
+supabase/.temp/
+
+# ── Builds / artefatos ────────────────────────────────────────────
+*.tar.gz
+*.zip
+robot/**/*.dmg
+robot/**/*.msi
+robot/**/*.AppImage
+robot/**/*.deb
+
+# ── Sessões do agente / temporários ───────────────────────────────
+.claude/
+.sessions/
+/tmp/
+
+# ── Documentação interna (privada — não vai pro repo público) ─────
+# Comente as linhas abaixo se quiser TUDO público.
+# CODEX_BRIEFING.md
+# BACKLOG.md
