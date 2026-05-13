@@ -27,6 +27,7 @@ const items: NavItem[] = [
   { href: '/chat',          label: 'Chat',          icon: MessagesSquare,    modulo: 'chat' },
   { href: '/dashboards',    label: 'Dashboards',    icon: BarChart3,         modulo: 'dashboards' },
   { href: '/balancete',     label: 'Ctrl Contábil', icon: BarChart3,         modulo: 'contabil' },
+  { href: '/premiacoes',    label: 'Premiações',    icon: Trophy,            modulo: 'gamificacao' },
   { href: '/conquistas',    label: 'Conquistas',    icon: Trophy,            modulo: 'gamificacao' },
   { href: '/rh/frequencia', label: 'Frequência',    icon: Users,             modulo: 'rh' },
   { href: '/obrigacoes',    label: 'Obrigações',    icon: FileText,          modulo: 'obrigacoes' },
