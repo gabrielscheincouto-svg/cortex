@@ -1,26 +1,25 @@
+/**
+ * Home — paridade operacional com o legado cecopel-gestao.
+ *
+ * Layout:
+ *   - Saudação + data + atalhos rápidos
+ *   - 4 KPIs reais (Pendentes / Atrasadas / Em andamento / Msgs não lidas)
+ *   - Calendário do mês (entregas marcadas) + Minhas Tarefas (lado a lado)
+ *   - Mural + Chat preview (abaixo)
+ *
+ * Foco: densidade de informação, decisão em 1 olhada. Sem orb decorativo no topo.
+ */
+
 import Link from 'next/link'
-import {
-  Flame, Award, Bell, Settings, ShieldCheck, AlertTriangle, Star, MessageCircle, Newspaper, MessagesSquare, Plus, Edit, Sparkles,
-} from 'lucide-react'
+import { Bell, Newspaper, MessagesSquare, AlertTriangle, Sparkles } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase'
 import { loadOrgContext } from '@/lib/modulos'
-import { Card, Stat, Avatar, Pill, Button, Empty } from '@/components/ui'
-import { saudacao, dateLongBR, timeBR, ago } from '@/lib/utils'
-import { CortexOrb } from '@/components/cortex/orb'
+import { Card, Avatar, Pill, Button, Empty } from '@/components/ui'
+import { saudacao, dateLongBR, ago } from '@/lib/utils'
+import { CalendarioMes, type DiaEntregas } from '@/components/home/calendario-mes'
+import { MinhasTarefas, type MinhasTarefasItem } from '@/components/home/minhas-tarefas'
 
-// força revalidação curta — evita 503 do RSC e dá cache leve no Netlify Edge
 export const revalidate = 30
-
-// Mapa de ícones por código de conquista — ajuda dar consistência sem chamadas extras
-const conquistaIcon: Record<string, { Icon: any; classes: string }> = {
-  pontual_aco:        { Icon: ShieldCheck,    classes: 'bg-gold-50 text-gold-700' },
-  pontual_prata:      { Icon: ShieldCheck,    classes: 'bg-ink-100 text-ink-600' },
-  pontual_bronze:     { Icon: ShieldCheck,    classes: 'bg-gold-50 text-gold-700' },
-  salvador_multa:     { Icon: AlertTriangle,  classes: 'bg-amber-50 text-amber-700' },
-  mestre_tributarista:{ Icon: Award,          classes: 'bg-rose-50 text-rose-700' },
-  comunicador:        { Icon: MessageCircle,  classes: 'bg-emerald-50 text-emerald-700' },
-}
-const fallbackIcon = { Icon: Award, classes: 'bg-ink-100 text-ink-600' }
 
 export default async function HomePage() {
   const supabase = createServerClient()
@@ -31,192 +30,159 @@ export default async function HomePage() {
   const userId = user!.id
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('nome, avatar_url')
-    .eq('id', userId)
-    .single()
+    .from('profiles').select('nome, avatar_url').eq('id', userId).single()
   const nome = profile?.nome ?? ''
 
-  // KPIs pessoais — agregações simples (em produção, podemos cache em telemetria)
-  const mesInicio = new Date()
-  mesInicio.setDate(1); mesInicio.setHours(0, 0, 0, 0)
+  // ── Mês corrente ──
+  const agora = new Date()
+  const ano = agora.getFullYear()
+  const mes = agora.getMonth() + 1   // 1-12
+  const mesInicio = new Date(ano, mes - 1, 1).toISOString()
+  const mesFim    = new Date(ano, mes, 0, 23, 59, 59).toISOString()
+  const hojeIso   = agora.toISOString().slice(0, 10)
 
+  // ── Queries em paralelo (4 KPIs + entregas do mês pro calendário + tarefas) ──
   const [
-    { count: entregasMes },
-    { count: entregasMesNoPrazo },
-    { count: entregasPendentes },
-    { data: pontosEvts },
-    { data: rankingPos },
-    { data: conquistasUser },
+    { count: kpiPendentes },
+    { count: kpiAtrasadas },
+    { count: kpiEmAndamento },
+    { count: kpiMsgsNaoLidas },
+    { data: entregasMes },
+    { data: minhasTarefas },
     { data: muralPosts },
     { data: chatCanais },
-    { data: deptConfig },
   ] = await Promise.all([
-    supabase.from('entregas').select('*', { count: 'exact', head: true }).eq('responsavel_id', userId).eq('org_id', ctx.org_id).gte('created_at', mesInicio.toISOString()),
-    supabase.from('entregas').select('*', { count: 'exact', head: true }).eq('responsavel_id', userId).eq('org_id', ctx.org_id).gte('created_at', mesInicio.toISOString()).eq('status', 'entregue'),
-    supabase.from('entregas').select('*', { count: 'exact', head: true }).eq('responsavel_id', userId).eq('org_id', ctx.org_id).in('status', ['pendente','em_andamento','aguardando_cliente']),
-    supabase.from('pontos_eventos').select('pontos').eq('user_id', userId).eq('org_id', ctx.org_id).gte('created_at', mesInicio.toISOString()),
-    supabase.from('ranking_periodos').select('posicao, pontos').eq('user_id', userId).eq('org_id', ctx.org_id).eq('tipo', 'semanal').order('calculado_em', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('conquistas_usuario').select('desbloqueada_em, conquistas_catalogo(codigo, nome)').eq('user_id', userId).eq('org_id', ctx.org_id).order('desbloqueada_em', { ascending: false }).limit(4),
-    supabase.from('mural_posts').select('id, autor_tipo, autor_nome, categoria, titulo, conteudo, fixado, created_at, autor_id, profiles!autor_id(nome)').eq('org_id', ctx.org_id).is('deleted_at', null).order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(3),
-    supabase.from('chat_canais').select('id, tipo, nome, ultima_mensagem_em, chat_mensagens(conteudo, autor_id, criada_em, profiles!autor_id(nome))').eq('org_id', ctx.org_id).order('ultima_mensagem_em', { ascending: false, nullsFirst: false }).limit(5),
-    supabase.from('org_departamentos').select('premiacao_modo').eq('org_id', ctx.org_id).eq('codigo', ctx.my_role).maybeSingle(),
+    supabase.from('entregas').select('*', { count: 'exact', head: true })
+      .eq('org_id', ctx.org_id).eq('responsavel_id', userId).eq('status', 'pendente'),
+    supabase.from('entregas').select('*', { count: 'exact', head: true })
+      .eq('org_id', ctx.org_id).eq('responsavel_id', userId).eq('status', 'atrasada'),
+    supabase.from('entregas').select('*', { count: 'exact', head: true })
+      .eq('org_id', ctx.org_id).eq('responsavel_id', userId).eq('status', 'em_andamento'),
+    supabase.from('chat_membros').select('*', { count: 'exact', head: true })
+      .eq('user_id', userId).gt('updated_at', new Date(Date.now() - 86400000).toISOString()),
+
+    supabase.from('entregas')
+      .select('id, prazo_legal, status')
+      .eq('org_id', ctx.org_id)
+      .gte('prazo_legal', mesInicio.slice(0, 10))
+      .lte('prazo_legal', mesFim.slice(0, 10)),
+
+    supabase.from('kanban_tarefas')
+      .select(`
+        id, titulo, departamento, prazo, status::text,
+        empresas!empresa_id(razao_social, nome_fantasia)
+      `)
+      .eq('org_id', ctx.org_id)
+      .eq('responsavel_id', userId)
+      .in('status', ['a_fazer','em_andamento'])
+      .order('prazo', { ascending: true, nullsFirst: false })
+      .limit(8),
+
+    supabase.from('mural_posts')
+      .select('id, autor_tipo, autor_nome, categoria, titulo, conteudo, fixado, created_at, autor_id, profiles!autor_id(nome)')
+      .eq('org_id', ctx.org_id).is('deleted_at', null)
+      .order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(3),
+
+    supabase.from('chat_canais')
+      .select('id, tipo, nome, ultima_mensagem_em')
+      .eq('org_id', ctx.org_id)
+      .order('ultima_mensagem_em', { ascending: false, nullsFirst: false }).limit(5),
   ])
 
-  const pontosMes = pontosEvts?.reduce((sum, p) => sum + p.pontos, 0) ?? 0
-  const percNoPrazo = entregasMes && entregasMes > 0
-    ? Math.round((entregasMesNoPrazo ?? 0) / entregasMes * 100)
-    : null
+  // Agrupa entregas por dia pro calendário
+  const mapDias = new Map<string, DiaEntregas>()
+  for (const e of (entregasMes ?? [])) {
+    if (!e.prazo_legal) continue
+    const dataIso = String(e.prazo_legal)
+    let d = mapDias.get(dataIso)
+    if (!d) { d = { data: dataIso, atrasadas:0, hoje:0, no_prazo:0, pendentes:0, outras:0 }; mapDias.set(dataIso, d) }
+    if (e.status === 'atrasada') d.atrasadas++
+    else if (dataIso === hojeIso && e.status !== 'entregue') d.hoje++
+    else if (e.status === 'entregue') d.no_prazo++
+    else if (e.status === 'pendente' || e.status === 'em_andamento') d.pendentes++
+    else d.outras++
+  }
+  const diasComDados = Array.from(mapDias.values())
 
-  // Streak simulado: ainda não há tabela; calcular depois via SQL ou worker
-  const streak = 0
+  const tarefasMap: MinhasTarefasItem[] = (minhasTarefas ?? []).map((t: any) => {
+    const emp = Array.isArray(t.empresas) ? t.empresas[0] : t.empresas
+    return {
+      id: t.id,
+      titulo: t.titulo,
+      cliente: emp ? (emp.nome_fantasia || emp.razao_social) : null,
+      departamento: t.departamento,
+      prazo: t.prazo,
+      status: t.status,
+    }
+  })
 
   return (
-    <div className="space-y-6">
-      {/* ── Hero do Cortex — orb 3D animado + saudação ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-mind-200 bg-gradient-to-br from-ink-900 via-mind-900 to-ink-900 px-8 py-10 text-white">
-        {/* Glow decorativo de fundo */}
-        <div aria-hidden className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-mind-500/20 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -right-20 -bottom-20 h-72 w-72 rounded-full bg-brand-500/15 blur-3xl" />
-
-        <div className="relative flex flex-wrap items-center gap-8">
-          {/* Lado esquerdo: copy */}
-          <div className="min-w-[260px] flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-mind-200">{dateLongBR(new Date())} · {timeBR(new Date())}</p>
-            <h1 className="mt-2 font-display text-4xl leading-tight">
-              {saudacao()},<br/>{nome.split(' ')[0] || 'colaborador'}
-            </h1>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-mind-100/90">
-              O Cortex está acompanhando suas entregas em tempo real. Você tem
-              <span className="mx-1 inline-flex items-baseline gap-1"><span className="text-xl font-semibold text-white">{entregasPendentes ?? 0}</span><span className="text-xs">pendentes</span></span>
-              e
-              <span className="mx-1 inline-flex items-baseline gap-1"><span className="text-xl font-semibold text-brand-400">{percNoPrazo ?? 0}%</span><span className="text-xs">no prazo este mês</span></span>.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Link href="/entregas">
-                <Button size="sm" variant="primary" className="bg-mind-500 hover:bg-mind-600 border-0">Abrir minhas entregas</Button>
-              </Link>
-              <Button size="sm" variant="ghost" icon={Sparkles} className="text-mind-100 hover:bg-white/10 ring-1 ring-white/15">
-                Cmd+K · Cortex Quick
-              </Button>
-            </div>
-          </div>
-
-          {/* Lado direito: orb 3D animado */}
-          <div className="mx-auto shrink-0">
-            <CortexOrb size={260} mode="cortex" />
-          </div>
+    <div className="space-y-5">
+      {/* ── Header denso: saudação + ações ── */}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+            {dateLongBR(agora)}
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold text-ink-900">
+            {saudacao()}, {nome.split(' ')[0] || 'colaborador'}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="ghost" icon={Sparkles} className="ring-1 ring-mind-200">
+            Cmd+K
+          </Button>
+          <Button size="sm" variant="ghost" icon={Bell} aria-label="Notificações" />
         </div>
       </div>
 
-      {/* Card de gamificação */}
-      <Card className="border-l-4 border-l-gold-500 p-6">
-        <div className="flex flex-wrap items-center gap-5">
-          <Avatar nome={nome} size="lg" src={profile?.avatar_url} />
-          <div className="flex-1 min-w-[180px]">
-            <p className="text-base font-semibold text-ink-900">{nome}</p>
-            <p className="mt-0.5 text-sm text-ink-500">{rolePtBr(ctx.my_role)}</p>
-            {deptConfig?.premiacao_modo && (
-              <Pill className={deptConfig.premiacao_modo === 'automatico' ? 'mt-2 bg-emerald-100 text-emerald-900 ring-emerald-300' : 'mt-2 bg-amber-100 text-amber-900 ring-amber-300'}>
-                {deptConfig.premiacao_modo === 'automatico' ? 'Pontos lançados automaticamente' : 'Aguardando fechamento manual do gerente'}
-              </Pill>
-            )}
-          </div>
-
-          <div className="flex items-center gap-6 border-l border-black/10 pl-5">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">Sequência no prazo</p>
-              <p className="mt-1 flex items-baseline gap-1.5">
-                <span className="text-3xl font-semibold text-gold-500">{streak}</span>
-                <span className="text-xs text-ink-400">dias</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">Pontos do mês</p>
-              <p className="mt-1 flex items-baseline gap-1.5">
-                <span className="text-2xl font-semibold text-ink-900">{pontosMes.toLocaleString('pt-BR')}</span>
-                <span className="text-xs text-ink-400">
-                  {rankingPos?.posicao ? `${rankingPos.posicao}º lugar` : 'sem ranking ainda'}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="my-4 h-px bg-black/5" />
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">Conquistas recentes</p>
-            {conquistasUser && conquistasUser.length > 0 ? (
-              <div className="flex gap-2">
-                {conquistasUser.map((cu, i) => {
-                  const cat = Array.isArray(cu.conquistas_catalogo) ? cu.conquistas_catalogo[0] : cu.conquistas_catalogo
-                  const { Icon, classes } = conquistaIcon[cat?.codigo ?? ''] ?? fallbackIcon
-                  return (
-                    <span key={i} title={cat?.nome} className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${classes}`}>
-                      <Icon size={16} />
-                    </span>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-ink-400">Conquiste a primeira concluindo uma entrega</p>
-            )}
-          </div>
-
-          <div className="min-w-[220px] max-w-[300px] flex-1">
-            <div className="mb-1 flex items-baseline justify-between">
-              <span className="text-xs text-ink-400">Para a próxima conquista</span>
-              <span className="text-xs font-medium text-ink-700">— / —</span>
-            </div>
-            <div className="h-1.5 rounded-full bg-ink-100">
-              <div className="h-full rounded-full bg-gold-500" style={{ width: '0%' }} />
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* KPIs pessoais */}
+      {/* ── 4 KPIs reais ── */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Entregas no mês" value={(entregasMes ?? 0).toString()} sub={`${entregasPendentes ?? 0} pendentes`} />
-        <Stat label="No prazo" value={percNoPrazo != null ? `${percNoPrazo}%` : '—'} sub="Mês atual" valueColor="text-emerald-700" />
-        <Stat label="Pontos do mês" value={pontosMes.toLocaleString('pt-BR')} sub="Acumulado" accent="gold" />
-        <Stat label="Ranking" value={rankingPos?.posicao ? `${rankingPos.posicao}º` : '—'} sub="Semanal" />
+        <KPI label="Pendentes"      valor={kpiPendentes ?? 0}      tone="neutral" />
+        <KPI label="Atrasadas"      valor={kpiAtrasadas ?? 0}      tone="danger" />
+        <KPI label="Em andamento"   valor={kpiEmAndamento ?? 0}    tone="info" />
+        <KPI label="Msgs não lidas" valor={kpiMsgsNaoLidas ?? 0}   tone="neutral" />
       </div>
 
-      {/* Mural + Chat lado-a-lado */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Mural */}
+      {/* ── Calendário + Tarefas (paridade legado) ── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <CalendarioMes ano={ano} mes={mes} diasComDados={diasComDados} />
+        <MinhasTarefas tarefas={tarefasMap} />
+      </div>
+
+      {/* ── Mural + Chat (linha de baixo) ── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card className="p-0">
           <div className="flex items-center justify-between border-b border-black/5 px-5 py-3.5">
             <div className="flex items-center gap-2">
               <Newspaper size={18} className="text-ink-700" />
               <p className="font-semibold text-sm text-ink-900">Mural interno</p>
             </div>
-            <Link href="/mural"><Button size="sm" variant="ghost" icon={Plus}>Postar</Button></Link>
+            <Link href="/mural" prefetch={false} className="text-xs font-medium text-mind-700 hover:text-mind-900">
+              Ver tudo →
+            </Link>
           </div>
           <div className="divide-y divide-black/5 px-5">
             {(!muralPosts || muralPosts.length === 0) ? (
-              <Empty icon={Newspaper} title="Sem posts ainda" description="Quando alguém postar no mural, aparecerá aqui." />
+              <Empty icon={Newspaper} title="Sem posts" description="Quando alguém postar, aparece aqui." />
             ) : (
-              muralPosts.map(p => {
-                const autorRel = Array.isArray(p.profiles) ? p.profiles[0] : (p as any).profiles
+              muralPosts.map((p: any) => {
+                const autorRel = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
                 const autorNome = p.autor_tipo === 'sistema' ? 'Sistema' : (p.autor_nome ?? autorRel?.nome ?? '—')
                 return (
-                  <div key={p.id} className="py-4">
-                    <div className="mb-1.5 flex items-center gap-2.5">
+                  <div key={p.id} className="py-3.5">
+                    <div className="mb-1 flex items-center gap-2.5">
                       <Avatar nome={autorNome} size="sm" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-ink-900">{autorNome}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-ink-900 truncate">{autorNome}</p>
                         <p className="text-[11px] text-ink-400">{ago(p.created_at)}{p.fixado && ' · fixado'}</p>
                       </div>
                       {p.categoria === 'importante' && (
-                        <Pill className="bg-gold-50 text-gold-700 ring-gold-100">Importante</Pill>
+                        <Pill className="bg-gold-50 text-gold-700 ring-gold-100"><AlertTriangle size={10} className="mr-1 inline" /> Importante</Pill>
                       )}
                     </div>
                     {p.titulo && <p className="text-sm font-medium text-ink-900">{p.titulo}</p>}
-                    <p className="text-sm leading-relaxed text-ink-700 line-clamp-3">{p.conteudo}</p>
+                    <p className="text-sm leading-snug text-ink-700 line-clamp-2">{p.conteudo}</p>
                   </div>
                 )
               })
@@ -224,35 +190,33 @@ export default async function HomePage() {
           </div>
         </Card>
 
-        {/* Chat */}
         <Card className="p-0">
           <div className="flex items-center justify-between border-b border-black/5 px-5 py-3.5">
             <div className="flex items-center gap-2">
               <MessagesSquare size={18} className="text-ink-700" />
-              <p className="font-semibold text-sm text-ink-900">Chat interno</p>
+              <p className="font-semibold text-sm text-ink-900">Chat</p>
             </div>
-            <Link href="/chat"><Button size="sm" variant="ghost" icon={Edit}>Novo</Button></Link>
+            <Link href="/chat" prefetch={false} className="text-xs font-medium text-mind-700 hover:text-mind-900">
+              Abrir →
+            </Link>
           </div>
-          <div className="p-2">
+          <div className="divide-y divide-black/5 px-5">
             {(!chatCanais || chatCanais.length === 0) ? (
-              <Empty icon={MessagesSquare} title="Sem conversas" description="Inicie uma conversa com um colega ou abra um canal de departamento." />
+              <Empty icon={MessagesSquare} title="Sem conversas" description="Os canais que você participa aparecem aqui." />
             ) : (
-              chatCanais.map(c => {
-                const ultMsg = (c.chat_mensagens as any[] | undefined)?.[0]
-                const nomeCanal = c.tipo === 'dm' ? '(DM)' : (c.nome ?? `#${c.tipo}`)
-                return (
-                  <Link key={c.id} href={`/chat/${c.id}`} className="flex items-center gap-3 rounded-lg p-2 hover:bg-ink-50">
-                    <Avatar nome={nomeCanal} size="md" />
-                    <div className="min-w-0 flex-1">
-                      <p className="flex items-baseline justify-between gap-2 text-sm font-medium text-ink-900">
-                        <span>{nomeCanal}</span>
-                        <span className="text-[11px] font-normal text-ink-400">{c.ultima_mensagem_em ? ago(c.ultima_mensagem_em) : ''}</span>
-                      </p>
-                      <p className="truncate text-xs text-ink-500">{ultMsg?.conteudo ?? 'sem mensagens'}</p>
-                    </div>
-                  </Link>
-                )
-              })
+              chatCanais.map((c: any) => (
+                <Link
+                  key={c.id}
+                  href={`/chat/${c.id}`}
+                  prefetch={false}
+                  className="flex items-center justify-between py-3 hover:bg-ink-50/60"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-ink-900 truncate">{c.nome ?? c.tipo}</p>
+                    <p className="text-[11px] text-ink-400">{c.ultima_mensagem_em ? ago(c.ultima_mensagem_em) : 'sem mensagens'}</p>
+                  </div>
+                </Link>
+              ))
             )}
           </div>
         </Card>
@@ -261,15 +225,28 @@ export default async function HomePage() {
   )
 }
 
-function rolePtBr(role: string): string {
-  return {
-    admin: 'Administrador do escritório',
-    gerente: 'Gerente',
-    contabil: 'Departamento Contábil',
-    fiscal: 'Departamento Fiscal',
-    pessoal: 'Departamento Pessoal',
-    societario: 'Departamento Societário',
-    comercial: 'Comercial / Financeiro',
-    visualizador: 'Visualizador',
-  }[role] ?? role
+// ── KPI compacto ──
+function KPI({
+  label, valor, tone,
+}: {
+  label: string
+  valor: number
+  tone: 'neutral' | 'danger' | 'info'
+}) {
+  const ring = {
+    neutral: 'ring-black/5',
+    danger:  'ring-rose-200 bg-rose-50/40',
+    info:    'ring-sky-200 bg-sky-50/30',
+  }[tone]
+  const valorColor = {
+    neutral: 'text-ink-900',
+    danger:  'text-rose-700',
+    info:    'text-sky-800',
+  }[tone]
+  return (
+    <div className={`rounded-xl bg-white p-5 ring-1 ring-inset ${ring}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">{label}</p>
+      <p className={`mt-2 text-3xl font-semibold ${valorColor}`}>{valor}</p>
+    </div>
+  )
 }
