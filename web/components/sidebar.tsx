@@ -26,7 +26,7 @@ const items: NavItem[] = [
   { href: '/mural',         label: 'Mural',         icon: Newspaper,         modulo: 'mural' },
   { href: '/chat',          label: 'Chat',          icon: MessagesSquare,    modulo: 'chat' },
   { href: '/dashboards',    label: 'Dashboards',    icon: BarChart3,         modulo: 'dashboards' },
-  { href: '/balancete',     label: 'Balancete',     icon: BarChart3,         modulo: 'contabil' },
+  { href: '/balancete',     label: 'Ctrl Contábil', icon: BarChart3,         modulo: 'contabil' },
   { href: '/conquistas',    label: 'Conquistas',    icon: Trophy,            modulo: 'gamificacao' },
   { href: '/rh/frequencia', label: 'Frequência',    icon: Users,             modulo: 'rh' },
   { href: '/obrigacoes',    label: 'Obrigações',    icon: FileText,          modulo: 'obrigacoes' },
