@@ -180,7 +180,7 @@ export function useProximasObrigacoes(empresaId: string | undefined): UseQueryRe
         entregue_em: string | null
         obrigacoes_catalogo: { nome: string } | null
       }
-      return (data as Row[] | null ?? []).map(r => ({
+      return (data as unknown as Row[] | null ?? []).map(r => ({
         id: r.id,
         empresa_id: r.empresa_id,
         obrigacao_id: r.obrigacao_id,
@@ -332,7 +332,7 @@ export function useSolicitacoes(empresaId: string | undefined): UseQueryResult<S
         tipo_codigo: string | null; departamento_sugerido: string | null;
         created_at: string; primeira_resposta_em: string | null; resolvida_em: string | null
       }
-      return (data as Row[] | null ?? []).map(r => ({
+      return (data as unknown as Row[] | null ?? []).map(r => ({
         id: r.id,
         assunto: r.assunto,
         descricao: r.descricao,
@@ -403,7 +403,7 @@ export function useDocumentos(empresaId: string | undefined): UseQueryResult<Doc
           obrigacoes_catalogo: { nome: string } | null
         } | null
       }
-      return ((data as Row[] | null) ?? []).map(r => {
+      return ((data as unknown as Row[] | null) ?? []).map(r => {
         const entrega = r.entregas
         return {
           id: r.id,
@@ -482,7 +482,7 @@ export function useSolicitacaoDetalhe(id: string | undefined): UseQueryResult<So
         sla_resposta_horas: number;
         responsavel: { nome: string } | null
       }
-      const r = data as Row
+      const r = data as unknown as Row
       return {
         id: r.id,
         empresa_id: r.empresa_id,
@@ -657,7 +657,7 @@ export function useObrigacoes(
         obrigacoes_catalogo: { nome: string } | null
         entrega_arquivos: ArquivoRow[] | null
       }
-      return (data as Row[] | null ?? []).map(r => ({
+      return (data as unknown as Row[] | null ?? []).map(r => ({
         id: r.id,
         empresa_id: r.empresa_id,
         obrigacao_id: r.obrigacao_id,
