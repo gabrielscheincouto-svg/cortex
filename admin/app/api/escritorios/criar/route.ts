@@ -8,22 +8,24 @@
  *   {
  *     slug:           string  // ex: 'aurora' → vira aurora.usecortex.com.br
  *     nome:           string  // ex: 'Aurora Contabilidade'
- *     cnpj?:          string  // opcional
- *     razao_social?:  string  // opcional
+ *     cnpj?:          string
+ *     razao_social?:  string
  *     plano_codigo:   'free' | 'pro' | 'enterprise'
  *     admin_email:    string  // email do PRIMEIRO admin do novo escritório
  *     admin_nome:     string  // nome do admin (ex: 'João da Silva')
  *   }
  *
- * Faz, em uma única transação (best-effort):
- *   1) Cria public.orgs (novo tenant) com plano e trial ativo
- *   2) Cria auth.users do admin com senha temporária aleatória
- *   3) Cria auth.identities (provider 'email')
- *   4) Cria public.profiles (trigger automática cuida disso, mas idempotente)
- *   5) Cria public.org_membros (user = admin do escritório novo)
+ * Fluxo:
+ *   1) Cria public.orgs (novo tenant) com trial de 14 dias
+ *   2) Envia INVITE pro email do admin (auth.admin.inviteUserByEmail).
+ *      O Supabase cria o user em estado "convite pendente" E manda email com link mágico.
+ *   3) Cria public.org_membros (user = admin do escritório novo)
  *
- * Retorna: { org, admin: { email, nome, senha_temporaria, login_url } }
- * IMPORTANTE: a senha_temporária é exibida UMA VEZ no painel admin.
+ * Quando o admin clica no link do email:
+ *   → cai em /aceitar-convite (web/), define a senha dele mesmo, completa cadastro.
+ *
+ * IMPORTANTE: o SMTP padrão do Supabase tem limite de ~4 emails/hora.
+ * Pra produção, configurar SMTP custom (Resend, SendGrid) em Auth → SMTP Settings.
  */
 
 import { NextResponse } from 'next/server'
@@ -40,15 +42,8 @@ interface CreateBody {
   admin_nome?: string
 }
 
-function gerarSenha(): string {
-  // Senha legível: 4 letras (sem confundíveis) + 4 dígitos + 1 símbolo
-  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-  const digitos = '23456789'
-  let s = ''
-  for (let i = 0; i < 4; i++) s += letras[Math.floor(Math.random() * letras.length)]
-  for (let i = 0; i < 4; i++) s += digitos[Math.floor(Math.random() * digitos.length)]
-  return s + '!'
-}
+const APP_URL = 'https://usecortex-app.netlify.app'
+const INVITE_REDIRECT = `${APP_URL}/aceitar-convite`
 
 export async function POST(req: Request) {
   try {
@@ -136,30 +131,29 @@ export async function POST(req: Request) {
       )
     }
 
-    // 6) Cria user admin via Auth Admin API (cria senha hashed, email_confirmed, etc)
-    const senhaTemp = gerarSenha()
-    const { data: created, error: userErr } = await sb.auth.admin.createUser({
-      email: adminEmail,
-      password: senhaTemp,
-      email_confirm: true,
-      user_metadata: { nome: adminNome },
+    // 6) Envia convite ao admin via Supabase Admin API
+    //    Cria o user E manda email com magic link em uma operação.
+    //    Quando ele clicar, cai em /aceitar-convite no web do escritório.
+    const { data: invited, error: inviteErr } = await sb.auth.admin.inviteUserByEmail(adminEmail, {
+      data: { nome: adminNome, org_id: org.id, org_nome: org.nome },
+      redirectTo: INVITE_REDIRECT,
     })
-    if (userErr || !created?.user) {
-      // rollback da org
+    if (inviteErr || !invited?.user) {
+      // rollback da org se o convite falhar
       await sb.from('orgs').delete().eq('id', org.id)
-      return NextResponse.json(
-        { error: `falha ao criar user admin: ${userErr?.message ?? 'desconhecido'}` },
-        { status: 500 },
-      )
+      const msg = inviteErr?.message ?? 'desconhecido'
+      const friendly = /rate limit|rate-limit|over_email_send_rate_limit/i.test(msg)
+        ? 'Limite de emails do Supabase atingido (padrão é ~4/hora). Configure SMTP próprio em Auth → SMTP Settings, ou aguarde alguns minutos.'
+        : msg
+      return NextResponse.json({ error: `falha ao enviar convite: ${friendly}` }, { status: 500 })
     }
-    const adminUserId = created.user.id
+    const adminUserId = invited.user.id
 
-    // 7) Upsert profile (trigger pode ter criado com nome vazio)
+    // 7) Profile + vínculo na nova org (status 'pendente' até João aceitar e definir senha)
     await sb
       .from('profiles')
       .upsert({ id: adminUserId, nome: adminNome, email: adminEmail, is_super_admin: false }, { onConflict: 'id' })
 
-    // 8) Vincula como admin da nova org
     const { error: membroErr } = await sb.from('org_membros').insert({
       org_id: org.id,
       user_id: adminUserId,
@@ -168,7 +162,7 @@ export async function POST(req: Request) {
       salario_base_cents: 0,
       cargo: 'Administrador',
       convidado_por: user.id,
-      aceito_em: new Date().toISOString(),
+      // aceito_em fica NULL — vira preenchido quando ele aceita o convite
     })
     if (membroErr) {
       return NextResponse.json(
@@ -183,8 +177,8 @@ export async function POST(req: Request) {
         user_id: adminUserId,
         email: adminEmail,
         nome: adminNome,
-        senha_temporaria: senhaTemp,
-        login_url: 'https://usecortex-app.netlify.app/login',
+        invite_status: 'enviado',
+        login_url: `${APP_URL}/login`,
       },
     })
   } catch (err) {

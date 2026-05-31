@@ -13,7 +13,7 @@ interface CriarResponse {
   admin: {
     email: string
     nome: string
-    senha_temporaria: string
+    invite_status: 'enviado'
     login_url: string
   }
 }
@@ -65,13 +65,17 @@ export default function NovoEscritorioPage() {
 
   function copiarCredenciais() {
     if (!resultado) return
-    const texto = `Acesso Cortex — ${resultado.org.nome}
+    const texto = `Olá ${resultado.admin.nome}!
 
-URL: ${resultado.admin.login_url}
-Email: ${resultado.admin.email}
-Senha temporária: ${resultado.admin.senha_temporaria}
+Você foi convidado pra administrar a ${resultado.org.nome} no Cortex —
+o sistema do escritório contábil.
 
-Troque a senha após o primeiro login.`
+Enviamos um email para ${resultado.admin.email} com o link de ativação.
+Clique no link, defina sua senha e comece a usar.
+
+Caso não receba em 5 min, confira a caixa de spam.
+
+Depois você acessa em: ${resultado.admin.login_url}`
     navigator.clipboard.writeText(texto)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
@@ -98,25 +102,30 @@ Troque a senha após o primeiro login.`
                 Escritório criado · {resultado.org.nome}
               </h2>
               <p className="text-sm text-ink-500">
-                Envie estas credenciais ao admin do escritório (1ª e única vez que aparecem).
+                Convite enviado pro email do admin. Ele define a senha e completa o cadastro.
               </p>
             </div>
           </div>
 
-          <div className="rounded-lg border border-ink-200 bg-ink-50/50 p-4 font-mono text-sm">
+          <div className="rounded-lg border border-ink-200 bg-ink-50/50 p-4 text-sm">
             <div className="mb-2">
-              <span className="text-ink-500">URL:</span>{' '}
-              <a className="text-mind-700 hover:underline" href={resultado.admin.login_url} target="_blank" rel="noreferrer">
+              <span className="text-ink-500">Email convidado:</span>{' '}
+              <span className="font-medium text-ink-900">{resultado.admin.email}</span>
+            </div>
+            <div className="mb-2">
+              <span className="text-ink-500">Nome:</span>{' '}
+              <span className="text-ink-900">{resultado.admin.nome}</span>
+            </div>
+            <div className="mb-2">
+              <span className="text-ink-500">URL final:</span>{' '}
+              <a className="text-mind-700 hover:underline font-mono" href={resultado.admin.login_url} target="_blank" rel="noreferrer">
                 {resultado.admin.login_url}
               </a>
             </div>
-            <div className="mb-2">
-              <span className="text-ink-500">Email:</span>{' '}
-              <span className="text-ink-900">{resultado.admin.email}</span>
-            </div>
-            <div>
-              <span className="text-ink-500">Senha:</span>{' '}
-              <span className="font-bold text-ink-900">{resultado.admin.senha_temporaria}</span>
+            <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              ⓘ O email pode demorar até 1 minuto. Se ele não receber, confira spam ou
+              configure SMTP próprio em <span className="font-mono">Supabase → Auth → SMTP Settings</span>
+              {' '}(o padrão tem limite de ~4 emails/hora).
             </div>
           </div>
 
