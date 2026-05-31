@@ -1,0 +1,24 @@
+# Netlify — site admin (super-admin Cecopel).
+# No painel Netlify, configure:
+#   Base directory:    admin
+#   Build command:     npm run build
+#   Publish directory: admin/.next
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options    = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy    = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Cortex: C de nós conectados — verde no topo (sistema) + violeta na base (IA) -->
+  <!-- Nó dourado central = transição/gamificação -->
+  <circle cx="32" cy="14" r="5" fill="#22C55E"/>
+  <circle cx="14" cy="32" r="5" fill="#22C55E"/>
+  <circle cx="14" cy="50" r="5" fill="#7C3AED"/>
+  <circle cx="32" cy="58" r="5" fill="#7C3AED"/>
+  <circle cx="50" cy="32" r="5" fill="#D4AF37"/>
+  <path d="M14 32 Q14 14 32 14" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M14 50 Q14 32 14 32" stroke="#0F5132" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M14 50 Q14 58 32 58" stroke="#7C3AED" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M50 32 L32 14" stroke="#22C55E" stroke-width="1.5" opacity="0.4" fill="none"/>
+  <path d="M50 32 L32 58" stroke="#7C3AED" stroke-width="1.5" opacity="0.4" fill="none"/>
+</svg>

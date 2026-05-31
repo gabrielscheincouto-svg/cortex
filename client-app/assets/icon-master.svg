@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cortex — ícone mestre 1024×1024 (conceito BRAND.md).
+  Símbolo: "C" formado por nós conectados (sinapses).
+  Hemisférios: verde no topo = sistema / dados saudáveis;
+               violeta na base = IA / cognição;
+               nó dourado de transição entre os dois.
+  Fundo azul-marinho (ink-900) cobre toda a área (safe pra maskable).
+
+  Para gerar PNGs (192, 512, maskable 192/512, apple-touch-icon) rode:
+    npm run icons
+  O resultado vai pra ./public/icons/ — referência no vite.config.ts.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Fundo full-bleed (safe area pra maskable) -->
+  <rect width="1024" height="1024" fill="#0B1324"/>
+
+  <!-- Glow sutil atrás do símbolo -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0B1324" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nodeGreen" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#5EE49C"/>
+      <stop offset="100%" stop-color="#22C55E"/>
+    </radialGradient>
+    <radialGradient id="nodeViolet" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </radialGradient>
+    <radialGradient id="nodeGold" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FACC15"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </radialGradient>
+  </defs>
+  <circle cx="512" cy="512" r="380" fill="url(#glow)"/>
+
+  <!-- Sinapses (conexões entre nós) -->
+  <!-- O símbolo é um C aberto à direita: nó topo (verde), nó esquerda-meio (verde→gold),
+       nó dourado central (transição), nó esquerda-base (violeta), nó base (violeta) -->
+  <g stroke-linecap="round" fill="none" stroke-width="14">
+    <!-- arco superior verde (topo → meio-esquerdo) -->
+    <path d="M 640 260 Q 360 320 320 480" stroke="#22C55E" opacity="0.85"/>
+    <!-- arco inferior violeta (meio-esquerdo → base) -->
+    <path d="M 320 540 Q 360 700 640 760" stroke="#7C3AED" opacity="0.85"/>
+    <!-- linhas internas finas (rede neural) -->
+    <g stroke-width="6" opacity="0.45">
+      <line x1="640" y1="260" x2="512" y2="512" stroke="#22C55E"/>
+      <line x1="320" y1="480" x2="512" y2="512" stroke="#22C55E"/>
+      <line x1="320" y1="540" x2="512" y2="512" stroke="#7C3AED"/>
+      <line x1="640" y1="760" x2="512" y2="512" stroke="#7C3AED"/>
+    </g>
+  </g>
+
+  <!-- Nós (sinapses individuais) -->
+  <!-- Hemisfério verde — topo -->
+  <circle cx="640" cy="260" r="46" fill="url(#nodeGreen)"/>
+  <circle cx="320" cy="480" r="40" fill="url(#nodeGreen)"/>
+
+  <!-- Nó dourado central (transição entre hemisférios) -->
+  <circle cx="512" cy="512" r="56" fill="url(#nodeGold)"/>
+  <circle cx="512" cy="512" r="22" fill="#0B1324" opacity="0.15"/>
+
+  <!-- Hemisfério violeta — base -->
+  <circle cx="320" cy="540" r="40" fill="url(#nodeViolet)"/>
+  <circle cx="640" cy="760" r="46" fill="url(#nodeViolet)"/>
+</svg>

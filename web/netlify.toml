@@ -1,0 +1,28 @@
+# Netlify — site web (escritório contábil).
+# No painel Netlify, configure:
+#   Base directory:    web
+#   Build command:     npm run build
+#   Publish directory: web/.next
+# O plugin @netlify/plugin-nextjs cuida do resto (rotas dinâmicas, ISR, edge fns).
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+  # NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY e NEXT_PUBLIC_API_URL
+  # vêm das env vars do site no painel Netlify.
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Headers de segurança básicos
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options    = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy    = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

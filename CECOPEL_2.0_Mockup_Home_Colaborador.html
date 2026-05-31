@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>CECOPEL 2.0 — Mockup Home do Colaborador</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f5f0;
+    --color-background-tertiary: #fafaf7;
+    --color-background-info: #e6f1fb;
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-text-info: #185fa5;
+    --color-border-tertiary: rgba(0,0,0,0.10);
+    --color-border-secondary: rgba(0,0,0,0.20);
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --font-sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: var(--color-background-tertiary); color: var(--color-text-primary); padding: 24px; line-height: 1.5; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  button { font-family: inherit; cursor: pointer; background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 6px 12px; color: var(--color-text-primary); font-size: 13px; transition: background 0.15s; }
+  button:hover { background: var(--color-background-secondary); }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .label { font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 500; }
+  .muted { color: var(--color-text-secondary); font-size: 13px; }
+  .muted-xs { color: var(--color-text-tertiary); font-size: 12px; }
+  .num-xl { font-size: 32px; font-weight: 500; letter-spacing: -0.5px; line-height: 1; }
+  .num-lg { font-size: 24px; font-weight: 500; line-height: 1; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; flex-shrink: 0; }
+  .av-md { width: 32px; height: 32px; font-size: 12px; }
+  .av-lg { width: 52px; height: 52px; font-size: 18px; }
+  .badge-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .divider { height: 0.5px; background: var(--color-border-tertiary); }
+  .conquest-circle { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; }
+  .conv { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--border-radius-md); }
+  .conv:hover { background: var(--color-background-secondary); }
+  .conv.active { background: #e6f1fb; }
+  .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #185fa5; }
+  .progress { height: 5px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+  .progress > span { display: block; height: 100%; background: #BA7517; }
+  @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+    <div>
+      <p class="muted">Quinta, 12 de novembro · 09:32</p>
+      <h1 style="font-size: 26px; font-weight: 500; margin: 2px 0 0;">Bom dia, Caroline</h1>
+    </div>
+    <div style="display:flex; gap: 6px;">
+      <button aria-label="Notificações"><i class="ti ti-bell" style="font-size:18px"></i></button>
+      <button aria-label="Configurações"><i class="ti ti-settings" style="font-size:18px"></i></button>
+    </div>
+  </div>
+
+  <div class="card" style="margin: 16px 0; padding: 18px 22px; border-left: 3px solid #BA7517;">
+    <div style="display:flex; align-items:center; gap: 16px; flex-wrap: wrap;">
+      <div class="avatar av-lg" style="background: #E6F1FB; color: #0C447C;">CL</div>
+      <div style="flex: 1; min-width: 200px;">
+        <p style="font-size: 16px; font-weight: 500;">Caroline A. Pereira</p>
+        <p class="muted" style="margin-top: 2px;">Departamento Contábil · Responsável Sênior</p>
+      </div>
+
+      <div style="display:flex; align-items: center; gap: 24px; padding-left: 16px; border-left: 0.5px solid var(--color-border-tertiary);">
+        <div>
+          <p class="label">Sequência no prazo</p>
+          <p style="margin-top: 6px; display: flex; align-items: baseline; gap: 6px;">
+            <span class="num-xl" style="color: #BA7517;">23</span>
+            <span class="muted-xs">dias</span>
+          </p>
+        </div>
+        <div>
+          <p class="label">Pontos do mês</p>
+          <p style="margin-top: 6px;">
+            <span class="num-lg">1.247</span>
+            <span class="muted-xs" style="margin-left: 6px;">3º lugar</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin: 16px 0;"></div>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap: wrap; gap: 16px;">
+      <div style="display:flex; align-items:center; gap: 18px;">
+        <p class="label">Conquistas recentes</p>
+        <div style="display:flex; gap: 10px;">
+          <span class="conquest-circle" style="background: #FAEEDA; color: #BA7517;" title="Pontual de Aço — 6 meses sem atraso"><i class="ti ti-shield-check"></i></span>
+          <span class="conquest-circle" style="background: #F1EFE8; color: #5F5E5A;" title="Salvador de Multa — recuperou 3 obrigações em risco"><i class="ti ti-alert-triangle"></i></span>
+          <span class="conquest-circle" style="background: #FAECE7; color: #993C1D;" title="Mestre Tributarista — 50 IRPFs entregues"><i class="ti ti-certificate"></i></span>
+          <span class="conquest-circle" style="background: #E1F5EE; color: #0F6E56;" title="Comunicadora — NPS médio 9.4"><i class="ti ti-message-circle"></i></span>
+        </div>
+      </div>
+
+      <div style="flex: 1; min-width: 220px; max-width: 320px;">
+        <div style="display:flex; justify-content:space-between; align-items: baseline; margin-bottom: 6px;">
+          <span class="muted-xs">Para a próxima conquista</span>
+          <span class="muted-xs" style="font-weight: 500;">142 / 200 pts</span>
+        </div>
+        <div class="progress"><span style="width: 71%;"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-bottom: 16px;">
+    <div class="card" style="padding: 14px 16px;">
+      <p class="label">Entregas no mês</p>
+      <p class="num-lg" style="margin-top: 8px;">47</p>
+      <p class="muted-xs" style="margin-top: 4px;">de 52 previstas</p>
+    </div>
+    <div class="card" style="padding: 14px 16px;">
+      <p class="label">No prazo</p>
+      <p class="num-lg" style="margin-top: 8px; color: #0F6E56;">98%</p>
+      <p class="muted-xs" style="margin-top: 4px;">média da equipe 91%</p>
+    </div>
+    <div class="card" style="padding: 14px 16px;">
+      <p class="label">NPS médio</p>
+      <p class="num-lg" style="margin-top: 8px;">9.4</p>
+      <p class="muted-xs" style="margin-top: 4px;">12 avaliações</p>
+    </div>
+    <div class="card" style="padding: 14px 16px;">
+      <p class="label">Ranking semanal</p>
+      <p class="num-lg" style="margin-top: 8px;">3º</p>
+      <p class="muted-xs" style="margin-top: 4px;">de 38 colaboradores</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+
+    <div class="card" style="padding: 0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding: 14px 18px; border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <i class="ti ti-news" style="font-size: 20px;"></i>
+          <p style="font-weight: 500; font-size: 15px;">Mural interno</p>
+        </div>
+        <button style="padding: 4px 12px; font-size: 12px;"><i class="ti ti-plus" style="font-size: 14px; vertical-align: -2px; margin-right: 4px;"></i>Postar</button>
+      </div>
+
+      <div style="padding: 4px 18px;">
+        <div style="padding: 14px 0;">
+          <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
+            <div class="avatar av-md" style="background: #EEEDFE; color: #3C3489;">FA</div>
+            <div style="flex: 1;">
+              <p style="font-size: 13px; font-weight: 500;">Flávio (Gerência)</p>
+              <p class="muted-xs">há 2 horas · fixado</p>
+            </div>
+            <span class="badge-pill" style="background: #FAEEDA; color: #854F0B;">Importante</span>
+          </div>
+          <p style="font-size: 14px; line-height: 1.55;">Lembrete: DCTFWeb vence sexta. Quem ainda tem pendente, por favor sinalizar até quarta às 17h para revisarmos juntos.</p>
+          <div style="display:flex; gap: 14px; margin-top: 10px;">
+            <button style="padding: 3px 10px; font-size: 12px;"><i class="ti ti-check" style="font-size:14px; vertical-align:-2px"></i> 12 confirmaram</button>
+            <button style="padding: 3px 10px; font-size: 12px;"><i class="ti ti-message" style="font-size:14px; vertical-align:-2px"></i> 3 comentários</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="padding: 14px 0;">
+          <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
+            <div class="avatar av-md" style="background: #E1F5EE; color: #0F6E56;">SE</div>
+            <div style="flex: 1;">
+              <p style="font-size: 13px; font-weight: 500;">Silvana (RH)</p>
+              <p class="muted-xs">ontem · 16:42</p>
+            </div>
+          </div>
+          <p style="font-size: 14px; line-height: 1.55;">Aniversariantes da semana: Andréa (15), Diego (17). Vamos celebrar quinta no café da tarde — quem topa contribuir, comenta aqui.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="padding: 14px 0 16px;">
+          <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
+            <div class="avatar av-md" style="background: #FAECE7; color: #993C1D;">RH</div>
+            <div style="flex: 1;">
+              <p style="font-size: 13px; font-weight: 500;">Sistema · Premiação</p>
+              <p class="muted-xs">ontem · 09:00</p>
+            </div>
+          </div>
+          <p style="font-size: 14px; line-height: 1.55;">Ranking de outubro fechou: <span style="font-weight: 500;">Andréa Lopes</span> conquistou ouro com 1.842 pts. Parabéns!</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding: 14px 18px; border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <i class="ti ti-messages" style="font-size: 20px;"></i>
+          <p style="font-weight: 500; font-size: 15px;">Chat interno</p>
+        </div>
+        <button style="padding: 4px 12px; font-size: 12px;"><i class="ti ti-edit" style="font-size: 14px; vertical-align: -2px; margin-right: 4px;"></i>Novo</button>
+      </div>
+
+      <div style="padding: 8px 10px;">
+        <div class="conv active">
+          <div class="avatar av-md" style="background: #EEEDFE; color: #3C3489;">JA</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display:flex; justify-content:space-between; align-items: baseline;">
+              <p style="font-size: 14px; font-weight: 500;">Janaína Soares</p>
+              <span class="muted-xs">09:28</span>
+            </div>
+            <p class="muted-xs" style="margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Caroline, mandei o SPED da Aquarela na pasta</p>
+          </div>
+          <div class="unread-dot"></div>
+        </div>
+
+        <div class="conv">
+          <div class="avatar av-md" style="background: #E1F5EE; color: #0F6E56;">DI</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display:flex; justify-content:space-between; align-items: baseline;">
+              <p style="font-size: 14px; font-weight: 500;">Diego Furtado</p>
+              <span class="muted-xs">08:50</span>
+            </div>
+            <p class="muted-xs" style="margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Você: vou olhar a DIRBI da Bem-Estar agora</p>
+          </div>
+        </div>
+
+        <div class="conv">
+          <div class="avatar av-md" style="background: #FAEEDA; color: #854F0B;"># </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display:flex; justify-content:space-between; align-items: baseline;">
+              <p style="font-size: 14px; font-weight: 500;">#dept-contábil</p>
+              <span class="muted-xs">ontem</span>
+            </div>
+            <p class="muted-xs" style="margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Michele: confirmando a reunião amanhã</p>
+          </div>
+          <span class="badge-pill" style="background: #FCEBEB; color: #791F1F; padding: 1px 8px;">3</span>
+        </div>
+
+        <div class="conv">
+          <div class="avatar av-md" style="background: #FAECE7; color: #993C1D;">FL</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display:flex; justify-content:space-between; align-items: baseline;">
+              <p style="font-size: 14px; font-weight: 500;">Flávio Pereira</p>
+              <span class="muted-xs">ontem</span>
+            </div>
+            <p class="muted-xs" style="margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ok, fica combinado então</p>
+          </div>
+        </div>
+
+        <div class="conv">
+          <div class="avatar av-md" style="background: #E6F1FB; color: #0C447C;"># </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display:flex; justify-content:space-between; align-items: baseline;">
+              <p style="font-size: 14px; font-weight: 500;">#aquarela · entrega #4521</p>
+              <span class="muted-xs">qua</span>
+            </div>
+            <p class="muted-xs" style="margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Conversa vinculada à obrigação</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 10px 18px; border-top: 0.5px solid var(--color-border-tertiary);">
+        <p class="muted-xs" style="text-align: center;">2 conversas com mensagens não lidas · pesquisar com <span style="font-weight: 500;">Ctrl+K</span></p>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="muted-xs" style="margin-top: 24px; text-align: center;">Mockup ilustrativo · dados fictícios · paleta CECOPEL atual mantida</p>
+
+</div>
+</body>
+</html>

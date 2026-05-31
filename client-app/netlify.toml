@@ -1,0 +1,29 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback — qualquer rota cai no index.html, React Router resolve
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Service worker NUNCA deve ser cacheado fora do que o Workbox controla
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Assets versionados podem ficar 1 ano no cache (Vite hasheia o nome)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

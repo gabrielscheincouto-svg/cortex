@@ -1,0 +1,38 @@
+# Deploy da API no Fly.io.
+# Antes do primeiro deploy: `fly launch --no-deploy` para criar o app no Fly,
+# depois `fly secrets set DATABASE_URL=... SUPABASE_JWT_SECRET=... ...` para subir os segredos.
+
+app = "cecopel-api"
+primary_region = "gru"   # São Paulo — menor latência para clientes brasileiros
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  APP_ENV = "production"
+  PORT = "8080"
+  LOG_LEVEL = "info"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

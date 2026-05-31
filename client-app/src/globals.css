@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset adicional além do preflight do Tailwind */
+@layer base {
+  :root {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+  /* Tipografia base mais reservada — densidade > drama */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-ink-900 font-semibold;
+  }
+}
+
+/* Pulsação neural Cortex (BRAND.md §2) — usado no header */
+@keyframes cortex-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%      { opacity: 1.0; transform: scale(1.15); }
+}
+.cortex-pulse {
+  width: 8px;
+  height: 8px;
+  background: theme('colors.brand.500');
+  border-radius: 9999px;
+  animation: cortex-pulse 2s ease-in-out infinite;
+}

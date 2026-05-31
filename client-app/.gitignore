@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependências
+node_modules
+
+# Build
+dist
+dist-ssr
+*.local
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# PWA
+dev-dist
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Artefatos transitórios do Vite (gerados durante build em sandboxes)
+vite.config.d.ts
+vite.config.js
+vite.config.js.timestamp-*.mjs

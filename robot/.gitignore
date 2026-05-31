@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.DS_Store
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/Cargo.lock
+src-tauri/gen/
+
+# Build artefacts
+*.dmg
+*.app
+*.exe
+*.msi
+*.AppImage
+*.deb
