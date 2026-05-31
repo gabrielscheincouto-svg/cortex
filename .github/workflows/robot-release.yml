@@ -1,0 +1,113 @@
+name: Robô · Build e Release
+
+# Builda o Cortex Robô pra macOS (.dmg) e Windows (.msi/.exe).
+# Dispara quando você cria uma tag "robot-v..." (ex: robot-v0.1.0)
+# ou manualmente pela aba Actions no GitHub.
+#
+# Output: uma Release no GitHub com os 3 instaladores:
+#   - Cortex_Robo_0.1.0_aarch64.dmg     (Mac Apple Silicon)
+#   - Cortex_Robo_0.1.0_x64.dmg         (Mac Intel)
+#   - Cortex_Robo_0.1.0_x64-setup.exe   (Windows)
+#   - Cortex_Robo_0.1.0_x64_en-US.msi   (Windows MSI)
+#
+# Cada SO compila em ~10 min. Builds rodam em paralelo.
+
+on:
+  push:
+    tags:
+      - 'robot-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versão (ex: 0.1.0). Cria uma tag robot-v<versão> se não existir.'
+        required: false
+        default: '0.1.0'
+
+permissions:
+  contents: write  # pra criar a Release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'      # Apple Silicon (ARM64)
+            args: '--target aarch64-apple-darwin'
+            name: 'macOS Apple Silicon'
+          - platform: 'macos-13'          # Intel x64 (último runner Intel da Microsoft)
+            args: '--target x86_64-apple-darwin'
+            name: 'macOS Intel'
+          - platform: 'windows-latest'
+            args: ''
+            name: 'Windows'
+
+    runs-on: ${{ matrix.platform }}
+    name: Build · ${{ matrix.name }}
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || matrix.platform == 'macos-13' && 'x86_64-apple-darwin' || '' }}
+
+      - name: Cache de dependências Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: 'robot/src-tauri -> target'
+
+      - name: Instalar dependências Linux (se aplicável)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Instalar deps Node (front Vite)
+        working-directory: robot
+        run: npm install
+
+      - name: Build do Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Sem code signing por enquanto. O app vai abrir com aviso de
+          # "developer não verificado" (Mac) ou "SmartScreen" (Windows).
+          # Pra produção: configurar APPLE_CERTIFICATE / WINDOWS_CERTIFICATE.
+        with:
+          projectPath: robot
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Cortex Robô ${{ github.ref_name }}'
+          releaseBody: |
+            ## Cortex Robô — Instaladores
+
+            Baixe abaixo o instalador da sua plataforma:
+
+            - **Mac (chip Apple M1/M2/M3)** → `Cortex_Robo_*_aarch64.dmg`
+            - **Mac (Intel)** → `Cortex_Robo_*_x64.dmg`
+            - **Windows** → `Cortex_Robo_*_x64-setup.exe` (recomendado) ou `.msi`
+
+            ### Como usar
+            1. Instale e abra o app.
+            2. Faça login com email/senha do seu escritório no Cortex.
+            3. Escolha uma pasta pra ser monitorada (ex: `Documentos/Cortex/ROBO`).
+            4. Jogue arquivos com CNPJ no nome (ex: `DAS_22555888000170_062026.pdf`).
+            5. O robô identifica, sobe pro Cortex e libera a entrega pro cliente.
+
+            ### Aviso de segurança (sem code signing ainda)
+            - **Mac**: ao abrir pela primeira vez, vai dizer "developer não identificado".
+              Soltura: clique com botão direito > Abrir > Abrir mesmo assim.
+            - **Windows**: SmartScreen aparece. Clique em "Mais informações" > "Executar mesmo assim".
+
+            Pra eliminar esses avisos definitivamente, precisamos comprar code signing
+            certificates (Apple Developer + Windows EV) — fica pro próximo passo.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
