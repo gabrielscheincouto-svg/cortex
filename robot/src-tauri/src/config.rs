@@ -27,7 +27,7 @@ impl Default for Config {
     fn default() -> Self {
         let hostname = hostname::get_hostname();
         Self {
-            api_url: "https://api.cecopel.com.br".into(),
+            api_url: "https://cortex-production-f46c.up.railway.app".into(),
             watch_dir: None,
             hostname,
             current_org_id: None,
