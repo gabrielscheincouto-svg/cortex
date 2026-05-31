@@ -94,14 +94,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle()
       if (!active) return
       if (error || !data) return
-      // PostgREST sempre devolve relacionamentos como array, mesmo em FK n:1.
-      // Por isso `empresas` vem como Array<…> aqui.
+      // PostgREST devolve FK n:1 como OBJETO (não array). Array é só pra n:N.
+      // Como empresa_usuarios_finais.empresa_id → empresas.id é n:1, vem como objeto.
       const row = data as {
         empresa_id: string
         role: EmpresaUsuarioRole
-        empresas: Array<{ id: string; razao_social: string; nome_fantasia: string | null; cnpj: string | null }>
+        empresas: { id: string; razao_social: string; nome_fantasia: string | null; cnpj: string | null } | null
       }
-      const emp = row.empresas[0]
+      const emp = row.empresas
       if (!emp) return
       setEmpresa({
         id: emp.id,

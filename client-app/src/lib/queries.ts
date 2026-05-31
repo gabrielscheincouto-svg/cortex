@@ -178,13 +178,13 @@ export function useProximasObrigacoes(empresaId: string | undefined): UseQueryRe
         prazo_legal: string
         status: EntregaStatus
         entregue_em: string | null
-        obrigacoes_catalogo: { nome: string }[] | null
+        obrigacoes_catalogo: { nome: string } | null
       }
       return (data as Row[] | null ?? []).map(r => ({
         id: r.id,
         empresa_id: r.empresa_id,
         obrigacao_id: r.obrigacao_id,
-        obrigacao_nome: r.obrigacoes_catalogo?.[0]?.nome ?? 'Obrigação',
+        obrigacao_nome: r.obrigacoes_catalogo?.nome ?? 'Obrigação',
         departamento: r.departamento,
         competencia: r.competencia,
         prazo_legal: r.prazo_legal,
@@ -400,11 +400,11 @@ export function useDocumentos(empresaId: string | undefined): UseQueryResult<Doc
           empresa_id: string
           competencia: string
           departamento: string
-          obrigacoes_catalogo: { nome: string }[] | null
-        }[] | null
+          obrigacoes_catalogo: { nome: string } | null
+        } | null
       }
       return ((data as Row[] | null) ?? []).map(r => {
-        const entrega = r.entregas?.[0]
+        const entrega = r.entregas
         return {
           id: r.id,
           nome_original: r.nome_original,
@@ -414,7 +414,7 @@ export function useDocumentos(empresaId: string | undefined): UseQueryResult<Doc
           origem: r.origem,
           created_at: r.created_at,
           competencia: entrega?.competencia ?? '',
-          obrigacao_nome: entrega?.obrigacoes_catalogo?.[0]?.nome ?? 'Documento',
+          obrigacao_nome: entrega?.obrigacoes_catalogo?.nome ?? 'Documento',
           departamento: entrega?.departamento ?? 'outro',
         }
       })
@@ -480,7 +480,7 @@ export function useSolicitacaoDetalhe(id: string | undefined): UseQueryResult<So
         primeira_resposta_em: string | null;
         resolvida_em: string | null;
         sla_resposta_horas: number;
-        responsavel: { nome: string }[] | null
+        responsavel: { nome: string } | null
       }
       const r = data as Row
       return {
@@ -495,7 +495,7 @@ export function useSolicitacaoDetalhe(id: string | undefined): UseQueryResult<So
         departamento_sugerido: r.departamento_sugerido,
         dados_form: r.dados_form ?? {},
         criada_em: r.created_at,
-        responsavel_nome: r.responsavel?.[0]?.nome ?? null,
+        responsavel_nome: r.responsavel?.nome ?? null,
         primeira_resposta_em: r.primeira_resposta_em,
         resolvida_em: r.resolvida_em,
         sla_resposta_horas: r.sla_resposta_horas,
@@ -654,14 +654,14 @@ export function useObrigacoes(
         prazo_legal: string
         status: EntregaStatus
         entregue_em: string | null
-        obrigacoes_catalogo: { nome: string }[] | null
+        obrigacoes_catalogo: { nome: string } | null
         entrega_arquivos: ArquivoRow[] | null
       }
       return (data as Row[] | null ?? []).map(r => ({
         id: r.id,
         empresa_id: r.empresa_id,
         obrigacao_id: r.obrigacao_id,
-        obrigacao_nome: r.obrigacoes_catalogo?.[0]?.nome ?? 'Obrigação',
+        obrigacao_nome: r.obrigacoes_catalogo?.nome ?? 'Obrigação',
         departamento: r.departamento,
         competencia: r.competencia,
         prazo_legal: r.prazo_legal,
