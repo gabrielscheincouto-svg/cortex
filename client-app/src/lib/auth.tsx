@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error || !data) return
       // PostgREST devolve FK n:1 como OBJETO (não array). Array é só pra n:N.
       // Como empresa_usuarios_finais.empresa_id → empresas.id é n:1, vem como objeto.
-      const row = data as {
+      const row = data as unknown as {
         empresa_id: string
         role: EmpresaUsuarioRole
         empresas: { id: string; razao_social: string; nome_fantasia: string | null; cnpj: string | null } | null
