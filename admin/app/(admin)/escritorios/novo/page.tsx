@@ -59,7 +59,7 @@ export default function NovoEscritorioPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-medium text-ink-700">Slug (subdomínio)</label>
-              <Input value={slug} onChange={e => setSlug(e.target.value)} placeholder="cecopel" required pattern="[a-z0-9-]+" />
+              <Input value={slug} onChange={e => setSlug(e.target.value)} placeholder="meu-escritorio" required pattern="[a-z0-9-]+" />
               <p className="mt-1 text-xs text-ink-400">Vira o subdomínio: <span className="font-mono">{slug || 'slug'}.usecortex.com.br</span></p>
             </div>
             <div>

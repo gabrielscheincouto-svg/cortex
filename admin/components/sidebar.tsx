@@ -23,7 +23,7 @@ export function Sidebar() {
     <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-black/10 bg-ink-900 text-white">
       <div className="flex items-center gap-2 px-6 pt-5 pb-4">
         <div className="h-2 w-2 rounded-full bg-brand-500" />
-        <span className="text-sm font-bold tracking-wider uppercase">CECOPEL admin</span>
+        <span className="text-sm font-bold tracking-wider uppercase">CORTEX admin</span>
       </div>
 
       <nav className="mt-2 flex-1 space-y-0.5 px-3">

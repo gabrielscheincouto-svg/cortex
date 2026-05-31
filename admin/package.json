@@ -1,8 +1,8 @@
 {
-  "name": "cecopel-admin",
+  "name": "cortex-admin",
   "version": "0.1.0",
   "private": true,
-  "description": "Painel super-admin CECOPEL 2.0 (admin.cecopel.com.br)",
+  "description": "Painel super-admin Cortex — gestão dos escritórios (admin.usecortex.com.br)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
