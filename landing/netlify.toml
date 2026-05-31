@@ -1,0 +1,16 @@
+# Site landing/portal — HTML estático, sem build.
+# No painel Netlify, configure:
+#   Base directory:    landing
+#   Build command:     (vazio)
+#   Publish directory: landing
+
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options    = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy    = "strict-origin-when-cross-origin"
+    Cache-Control      = "public, max-age=300, must-revalidate"

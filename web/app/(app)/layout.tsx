@@ -74,6 +74,20 @@ function NoOrgsScreen({ userName }: { userName: string }) {
         <p className="mt-1 text-sm text-ink-500">
           Peça ao administrador do seu escritório para enviar um convite.
         </p>
+        <div className="mt-6 flex flex-col gap-2">
+          <a
+            href="/api/auth/signout"
+            className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white hover:bg-ink-800"
+          >
+            Entrar com outro usuário
+          </a>
+          <a
+            href="https://usecortex-cliente.netlify.app/"
+            className="text-xs text-ink-500 hover:text-ink-700 hover:underline"
+          >
+            É cliente de um escritório? Acessar Portal do Cliente
+          </a>
+        </div>
       </div>
     </main>
   )

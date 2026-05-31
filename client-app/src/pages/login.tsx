@@ -1,20 +1,28 @@
 /**
- * Login — magic link via Supabase Auth.
- * Cliente digita email, recebe link no inbox, clica → cai na home.
+ * Login do PWA cliente.
+ *
+ * Modos:
+ *   - "senha": email + senha (padrão para usuários criados pelo escritório
+ *              com senha temporária).
+ *   - "link":  magic link via email (alternativa quando o cliente esqueceu a senha
+ *              ou prefere não digitar).
  */
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { Sparkles, Mail } from 'lucide-react'
+import { Sparkles, Mail, LogIn } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
 import { Button, Input, Spinner } from '@/components/ui'
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error'
+type Modo = 'senha' | 'link'
 
 export function LoginPage() {
   const { status } = useAuth()
   const location = useLocation()
+  const [modo, setModo] = useState<Modo>('senha')
   const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
   const [formState, setFormState] = useState<FormState>('idle')
   const [erro, setErro] = useState<string | null>(null)
 
@@ -23,19 +31,32 @@ export function LoginPage() {
     return <Navigate to={from} replace />
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmitSenha(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setErro(null)
+    setFormState('sending')
+    const supabase = getSupabase()
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+    if (error) {
+      setErro(traduzErro(error.message))
+      setFormState('error')
+      return
+    }
+    setFormState('idle')
+    // o AuthProvider escuta onAuthStateChange e redireciona via <Navigate />
+  }
+
+  async function handleSubmitLink(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setErro(null)
     setFormState('sending')
     const supabase = getSupabase()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-      },
+      options: { emailRedirectTo: `${window.location.origin}/` },
     })
     if (error) {
-      setErro(error.message)
+      setErro(traduzErro(error.message))
       setFormState('error')
       return
     }
@@ -76,8 +97,70 @@ export function LoginPage() {
                 Trocar de email
               </button>
             </div>
+          ) : modo === 'senha' ? (
+            <form onSubmit={handleSubmitSenha} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-800">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  autoFocus
+                  required
+                  placeholder="voce@empresa.com.br"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={formState === 'sending'}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="senha" className="mb-1.5 block text-sm font-medium text-ink-800">
+                  Senha
+                </label>
+                <Input
+                  id="senha"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="••••••••"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  disabled={formState === 'sending'}
+                />
+              </div>
+
+              {erro && (
+                <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{erro}</p>
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full"
+                disabled={formState === 'sending' || !email || !senha}
+              >
+                {formState === 'sending' ? <Spinner size={14} /> : <LogIn size={14} />}
+                {formState === 'sending' ? 'Entrando…' : 'Entrar'}
+              </Button>
+
+              <div className="border-t border-ink-100 pt-3 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModo('link')
+                    setErro(null)
+                  }}
+                  className="text-xs font-medium text-mind-700 hover:text-mind-900"
+                >
+                  Esqueci a senha · entrar por link
+                </button>
+              </div>
+            </form>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmitLink} className="space-y-4">
               <div>
                 <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-800">
                   Email
@@ -106,12 +189,21 @@ export function LoginPage() {
                 disabled={formState === 'sending' || !email}
               >
                 {formState === 'sending' ? <Spinner size={14} /> : <Sparkles size={14} />}
-                {formState === 'sending' ? 'Enviando link…' : 'Entrar com email'}
+                {formState === 'sending' ? 'Enviando link…' : 'Receber link no email'}
               </Button>
 
-              <p className="text-center text-xs text-ink-500">
-                Sem senha. Você recebe um link mágico no email para entrar.
-              </p>
+              <div className="border-t border-ink-100 pt-3 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModo('senha')
+                    setErro(null)
+                  }}
+                  className="text-xs font-medium text-mind-700 hover:text-mind-900"
+                >
+                  ← Voltar pra entrar com senha
+                </button>
+              </div>
             </form>
           )}
         </div>
@@ -125,4 +217,11 @@ export function LoginPage() {
       </div>
     </div>
   )
+}
+
+function traduzErro(msg: string): string {
+  if (/invalid login credentials/i.test(msg)) return 'Email ou senha incorretos.'
+  if (/email not confirmed/i.test(msg)) return 'Email ainda não confirmado.'
+  if (/over_email_send_rate_limit/i.test(msg)) return 'Aguarde alguns segundos antes de tentar novamente.'
+  return msg
 }
