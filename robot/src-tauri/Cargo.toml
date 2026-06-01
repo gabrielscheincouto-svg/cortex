@@ -1,6 +1,6 @@
 [package]
 name = "cecopel-robot"
-version = "0.1.1"
+version = "0.1.2"
 description = "Robô CECOPEL 2.0 — observa pasta, identifica SPED/guias e publica na API"
 authors = ["CECOPEL"]
 edition = "2021"

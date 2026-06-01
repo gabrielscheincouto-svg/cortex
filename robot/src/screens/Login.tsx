@@ -7,11 +7,12 @@ import { tauri } from '../lib/tauri'
  * Tela de login. O robô NÃO armazena a senha — só a usa uma vez para obter o JWT
  * do Supabase Auth, que vai para o chaveiro do sistema operacional.
  *
- * Em produção, esses valores virão de um config remoto (ou serão hardcoded por edição
- * do código no build, já que o robô é distribuído pela CECOPEL).
+ * URL e anon key hardcoded: são valores PÚBLICOS (anon key é embutida no front-end
+ * do painel web e fica exposta no F12 do browser). Quem distribui o binário pode
+ * dispensar a complexidade de injetar via env vars.
  */
-const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL ?? 'https://xxxxxxxxxxx.supabase.co'
-const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY ?? ''
+const SUPABASE_URL = 'https://ocbohmnmqtnrcwgvenus.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jYm9obW5tcXRucmN3Z3ZlbnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjAyODYsImV4cCI6MjA5NDIzNjI4Nn0.50PLKUrs95I_L179296ZAskY1HEBYD0SKPuoEd-06hA'
 
 export function Login({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState('')
@@ -38,7 +39,7 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
       <Card className="w-full max-w-md">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand text-white font-bold">C</div>
-          <h1 className="text-xl font-semibold text-ink-900">CECOPEL · Robô</h1>
+          <h1 className="text-xl font-semibold text-ink-900">Cortex · Robô</h1>
           <p className="mt-1 text-sm text-ink-500">Conecte ao seu escritório</p>
         </div>
 
