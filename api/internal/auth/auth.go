@@ -141,18 +141,26 @@ func parseECPublicKey(k jwkKey) (*ecdsa.PublicKey, error) {
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
 
+// OrgLookupFunc retorna o current_org_id de um user. Usado como fallback
+// quando o JWT não tem a claim `app_metadata.current_org_id` setada
+// (default do Supabase). A implementação típica consulta public.profiles.
+type OrgLookupFunc func(ctx context.Context, userID uuid.UUID) (uuid.UUID, error)
+
 // Middleware retorna um middleware Fiber que:
 //   1) Lê o header Authorization: Bearer <jwt>
 //   2) Valida a assinatura (ES256 via JWKS OU HS256 via secret)
 //   3) Extrai user_id e (opcionalmente) org_id de app_metadata.current_org_id
-//   4) Anexa um db.TenantCtx ao c.UserContext()
+//   4) Se org_id ausente E orgLookup != nil, busca de profiles.current_org_id
+//   5) Anexa um db.TenantCtx ao c.UserContext()
 //
 // Se requireAuth=true e o token estiver ausente ou inválido, devolve 401.
 //
 // `jwtSecret` é opcional (pode ser vazio). Se vazio, só ES256 é aceito.
 // `supabaseURL` é usado pra construir a JWKS URL automaticamente. Se vazio,
 // JWKS não é carregado e só HS256 é aceito.
-func Middleware(jwtSecret string, supabaseURL string, requireAuth bool, allowQueryToken bool) fiber.Handler {
+// `orgLookup` é opcional. Se passado, é chamado quando o JWT não tem a claim
+// current_org_id — permite usar profiles.current_org_id como fonte da verdade.
+func Middleware(jwtSecret string, supabaseURL string, orgLookup OrgLookupFunc, requireAuth bool, allowQueryToken bool) fiber.Handler {
 	if jwtSecret == "" && supabaseURL == "" {
 		log.Fatal().Msg("auth: nem SUPABASE_JWT_SECRET nem SUPABASE_URL configurados — middleware não pode validar")
 	}
@@ -237,11 +245,18 @@ func Middleware(jwtSecret string, supabaseURL string, requireAuth bool, allowQue
 			return c.Status(401).JSON(fiber.Map{"error": "invalid_user_id"})
 		}
 
-		// org_id atual vem da app_metadata (setada pelo backend quando o user troca de org)
+		// org_id atual: primeiro tenta a claim do JWT, depois consulta profiles.
+		// O Supabase Auth não inclui app_metadata.current_org_id por padrão, então
+		// na prática o fallback de profiles é o que funciona.
 		var orgID uuid.UUID
 		if v, ok := claims.AppMeta["current_org_id"].(string); ok && v != "" {
 			if parsed, err := uuid.Parse(v); err == nil {
 				orgID = parsed
+			}
+		}
+		if orgID == uuid.Nil && orgLookup != nil {
+			if found, lookupErr := orgLookup(c.UserContext(), userID); lookupErr == nil && found != uuid.Nil {
+				orgID = found
 			}
 		}
 

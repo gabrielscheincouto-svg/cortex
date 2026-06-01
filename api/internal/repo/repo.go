@@ -54,6 +54,28 @@ func (r *Repo) GetProfile(ctx context.Context, userID uuid.UUID) (*models.Profil
 	return p, err
 }
 
+// GetCurrentOrgID busca o current_org_id de um user direto de public.profiles.
+// Usa o pool sem WithTenant porque é chamado pelo middleware ANTES do TenantCtx
+// estar setado (galinha-e-ovo). Profile é tabela de leitura pública por design.
+//
+// Retorna uuid.Nil se o user existe mas não tem org selecionada, ou se o user
+// nem existe ainda na tabela profiles.
+func (r *Repo) GetCurrentOrgID(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	var orgID *uuid.UUID
+	const q = `SELECT current_org_id FROM public.profiles WHERE id = $1`
+	err := r.DB.Pool.QueryRow(ctx, q, userID).Scan(&orgID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, nil
+		}
+		return uuid.Nil, err
+	}
+	if orgID == nil {
+		return uuid.Nil, nil
+	}
+	return *orgID, nil
+}
+
 func (r *Repo) SetCurrentOrg(ctx context.Context, userID, orgID uuid.UUID) error {
 	const q = `UPDATE public.profiles SET current_org_id = $2, updated_at = now() WHERE id = $1`
 	return r.DB.WithTenant(ctx, func(tx pgx.Tx) error {
