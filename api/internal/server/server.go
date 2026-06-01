@@ -46,7 +46,7 @@ func New(cfg *config.Config, r *repo.Repo, hub *realtime.Hub) *fiber.App {
 	app.Get("/api/v1/tv", h.TVData)
 
 	// Rotas autenticadas
-	api := app.Group("/api/v1", auth.Middleware(cfg.SupabaseJWTSecret, true, false))
+	api := app.Group("/api/v1", auth.Middleware(cfg.SupabaseJWTSecret, cfg.SupabaseURL, true, false))
 
 	api.Get("/me", h.Me)
 	api.Patch("/me/current-org", h.SetCurrentOrg)
@@ -147,7 +147,7 @@ func New(cfg *config.Config, r *repo.Repo, hub *realtime.Hub) *fiber.App {
 	api.Post("/robo/upload",    h.RoboUpload)
 
 	// WebSocket realtime (chat + mural)
-	app.Get("/ws", auth.Middleware(cfg.SupabaseJWTSecret, true, true), realtime.WSUpgrade(hub))
+	app.Get("/ws", auth.Middleware(cfg.SupabaseJWTSecret, cfg.SupabaseURL, true, true), realtime.WSUpgrade(hub))
 
 	return app
 }
