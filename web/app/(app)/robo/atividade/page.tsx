@@ -13,7 +13,7 @@
  */
 
 import Link from 'next/link'
-import { Bot, FileCheck, FolderOpen, AlertTriangle, ExternalLink } from 'lucide-react'
+import { Bot, FileCheck, FolderOpen, AlertTriangle, ExternalLink, Download, Apple, Monitor } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase'
 import { loadOrgContext } from '@/lib/modulos'
 import { Card, Empty, Pill, Stat } from '@/components/ui'
@@ -104,6 +104,62 @@ export default async function AtividadeRoboPage({
           Tudo o que o robô Tauri liquidou nesta org. Cada arquivo identificado, qual cliente, qual obrigação.
         </p>
       </div>
+
+      {/* Download dos instaladores */}
+      <Card className="p-0">
+        <div className="flex items-center justify-between border-b border-black/5 px-5 py-3.5">
+          <div className="flex items-center gap-2">
+            <Download size={16} className="text-mind-600" />
+            <p className="text-sm font-semibold text-ink-900">Instalar o Robô</p>
+          </div>
+          <span className="font-mono text-[11px] text-ink-500">v0.1.0</span>
+        </div>
+        <div className="grid gap-3 p-5 sm:grid-cols-3">
+          <a
+            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.0/Cortex.Robo_0.1.0_aarch64.dmg"
+            className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+          >
+            <Apple size={22} className="shrink-0 text-ink-700" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-900">Mac · Apple Silicon</p>
+              <p className="text-[11px] text-ink-500">.dmg · 5,4 MB · M1/M2/M3/M4/M5</p>
+            </div>
+            <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+          </a>
+
+          <a
+            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.0/Cortex.Robo_0.1.0_x64-setup.exe"
+            className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+          >
+            <Monitor size={22} className="shrink-0 text-ink-700" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-900">Windows</p>
+              <p className="text-[11px] text-ink-500">.exe · 3,6 MB · 10/11 (64 bits)</p>
+            </div>
+            <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+          </a>
+
+          <a
+            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.0/Cortex.Robo_0.1.0_x64_en-US.msi"
+            className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+          >
+            <Monitor size={22} className="shrink-0 text-ink-700" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-900">Windows · MSI</p>
+              <p className="text-[11px] text-ink-500">.msi · 5,3 MB · corporativo / GPO</p>
+            </div>
+            <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+          </a>
+        </div>
+        <div className="flex items-start gap-2 border-t border-black/5 bg-ink-50/50 px-5 py-3 text-[11px] text-ink-600">
+          <AlertTriangle size={12} className="mt-0.5 shrink-0 text-gold-600" />
+          <p>
+            <span className="font-medium text-ink-900">Primeira abertura no Mac:</span> botão direito no app → "Abrir" → "Abrir
+            mesmo assim". <span className="font-medium text-ink-900 sm:ml-2">No Windows:</span> SmartScreen → "Mais informações"
+            → "Executar mesmo assim". Code signing ainda não configurado.
+          </p>
+        </div>
+      </Card>
 
       {/* 4 KPIs */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
