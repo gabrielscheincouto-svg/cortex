@@ -17,7 +17,8 @@ impl FileParser for EsocialParser {
 
 fn parse_xml(content: &str) -> ParseHint {
     let mut reader = Reader::from_str(content);
-    reader.trim_text(true);
+    // quick-xml 0.36+ moveu `trim_text` para o objeto de config.
+    reader.config_mut().trim_text(true);
     let mut current = String::new();
     let mut cnpj = None;
     let mut competencia = None;
