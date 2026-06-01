@@ -22,7 +22,6 @@ use crate::uploader::Uploader;
 use serde::Serialize;
 use std::sync::Arc;
 use tauri::{
-    image::Image,
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     AppHandle, Manager, RunEvent, State,
@@ -141,26 +140,23 @@ async fn restart_watcher(pipeline: Arc<Pipeline>, dir: std::path::PathBuf) -> Ro
 }
 
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
-    let abrir = MenuItem::with_id(app, "open",  "Abrir CECOPEL Robô", true, None::<&str>)?;
+    let abrir = MenuItem::with_id(app, "open",  "Abrir Cortex Robô", true, None::<&str>)?;
     let pause = MenuItem::with_id(app, "pause", "Pausar monitoramento", true, None::<&str>)?;
     let quit  = MenuItem::with_id(app, "quit",  "Sair", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&abrir, &pause, &quit])?;
 
-    let icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png")).unwrap_or_else(|_| {
-        // Fallback: pixel transparente 1x1 PNG mínimo. Garante que o build não quebra antes do ícone existir.
-        Image::from_bytes(&[
-            0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,
-            0,0,0,1,0,0,0,1,8,6,0,0,0,0x1F,0x15,0xC4,0x89,
-            0,0,0,0x0A,0x49,0x44,0x41,0x54,0x78,0x9C,0x63,0,1,0,0,5,0,1,0x0D,0x0A,0x2D,0xB4,
-            0,0,0,0,0x49,0x45,0x4E,0x44,0xAE,0x42,0x60,0x82,
-        ]).expect("png fallback inválido")
-    });
+    // Tauri 2.11 removeu Image::from_bytes (que aceitava PNG codificado).
+    // Usamos o ícone padrão da janela definido em tauri.conf.json — funciona
+    // bem como tray icon e dispensa decodificação manual de PNG.
+    let mut tray_builder = TrayIconBuilder::with_id("main");
+    if let Some(icon) = app.default_window_icon() {
+        tray_builder = tray_builder.icon(icon.clone());
+    }
 
-    let _tray = TrayIconBuilder::with_id("main")
-        .icon(icon)
+    let _tray = tray_builder
         .menu(&menu)
         .icon_as_template(true)
-        .tooltip("CECOPEL Robô")
+        .tooltip("Cortex Robô")
         .on_menu_event(move |app, ev| match ev.id.as_ref() {
             "open"  => { let _ = app.get_webview_window("main").map(|w| { let _ = w.show(); let _ = w.set_focus(); }); }
             "pause" => { info!("pausar — TODO"); }
