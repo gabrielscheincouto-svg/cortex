@@ -169,17 +169,23 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
 }
 
 fn main() {
-    // Tracing — logs em JSON em release, console legível em debug
+    // Tracing — logs em JSON em release, console legível em debug.
+    // try_init() em vez de init() pra não panicar se algum outro subscriber tentar registrar.
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-    tracing_subscriber::fmt().with_env_filter(filter).init();
+    let _ = tracing_subscriber::fmt().with_env_filter(filter).try_init();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_log::Builder::default().build())
+        // `tauri_plugin_log` removido — colide com `tracing_subscriber` e fazia o app
+        // panicar silenciosamente no Windows (windows_subsystem="windows" oculta o erro).
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
-            // 1) Config
-            let cfg = Arc::new(RwLock::new(Config::load().expect("load config")));
+            // 1) Config — fallback pra default se falhar (em vez de panicar e fechar o app).
+            let cfg_loaded = Config::load().unwrap_or_else(|e| {
+                error!("falha ao carregar config: {e} — usando default");
+                Config::default()
+            });
+            let cfg = Arc::new(RwLock::new(cfg_loaded));
             let api_url = cfg.blocking_read().api_url.clone();
 
             // 2) Uploader (cliente HTTP único, compartilhado)
@@ -233,9 +239,11 @@ fn main() {
                 }
             });
 
-            // 7) Janela: começa escondida (só tray). Usuário abre pelo menu da bandeja.
+            // 7) Janela: começa VISÍVEL pra UX inicial (login + setup). Depois o usuário pode
+            // fechar a janela; o app continua rodando na bandeja do sistema.
             if let Some(win) = app.get_webview_window("main") {
-                let _ = win.hide();
+                let _ = win.show();
+                let _ = win.set_focus();
             }
             Ok(())
         })

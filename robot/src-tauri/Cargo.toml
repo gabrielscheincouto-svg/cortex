@@ -1,6 +1,6 @@
 [package]
 name = "cecopel-robot"
-version = "0.1.0"
+version = "0.1.1"
 description = "Robô CECOPEL 2.0 — observa pasta, identifica SPED/guias e publica na API"
 authors = ["CECOPEL"]
 edition = "2021"
@@ -12,7 +12,6 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-dialog = "2"
-tauri-plugin-log = "2"
 tauri-plugin-store = "2"
 
 # Async + tokio runtime já incluído pelo Tauri
