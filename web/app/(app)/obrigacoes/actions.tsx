@@ -9,18 +9,31 @@ import { Button } from '@/components/ui'
 export function HerdarObrigacaoButton({ token, obrigacaoId }: { token: string; obrigacaoId: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
   async function herdar() {
     setLoading(true)
+    setErro(null)
     try {
       await apiBrowser(token).herdarObrigacao(obrigacaoId)
       router.refresh()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('herdarObrigacao falhou:', err)
+      setErro(msg)
     } finally {
       setLoading(false)
     }
   }
 
-  return <Button type="button" size="sm" variant="primary" icon={Plus} disabled={loading} onClick={() => void herdar()}>Adicionar</Button>
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button type="button" size="sm" variant="primary" icon={Plus} disabled={loading} onClick={() => void herdar()}>
+        {loading ? 'Adicionando...' : 'Adicionar'}
+      </Button>
+      {erro && <p className="max-w-[220px] text-right text-[10px] text-rose-700">{erro}</p>}
+    </div>
+  )
 }
 
 export function VincularEmpresaForm({
