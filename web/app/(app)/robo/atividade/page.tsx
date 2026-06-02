@@ -112,11 +112,11 @@ export default async function AtividadeRoboPage({
             <Download size={16} className="text-mind-600" />
             <p className="text-sm font-semibold text-ink-900">Instalar o Robô</p>
           </div>
-          <span className="font-mono text-[11px] text-ink-500">v0.1.1</span>
+          <span className="font-mono text-[11px] text-ink-500">v0.1.2</span>
         </div>
         <div className="grid gap-3 p-5 sm:grid-cols-3">
           <a
-            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.1/Cortex.Robo_0.1.1_aarch64.dmg"
+            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.2/Cortex.Robo_0.1.2_aarch64.dmg"
             className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
           >
             <Apple size={22} className="shrink-0 text-ink-700" />
@@ -128,7 +128,7 @@ export default async function AtividadeRoboPage({
           </a>
 
           <a
-            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.1/Cortex.Robo_0.1.1_x64-setup.exe"
+            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.2/Cortex.Robo_0.1.2_x64-setup.exe"
             className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
           >
             <Monitor size={22} className="shrink-0 text-ink-700" />
@@ -140,7 +140,7 @@ export default async function AtividadeRoboPage({
           </a>
 
           <a
-            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.1/Cortex.Robo_0.1.1_x64_en-US.msi"
+            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.2/Cortex.Robo_0.1.2_x64_en-US.msi"
             className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
           >
             <Monitor size={22} className="shrink-0 text-ink-700" />
