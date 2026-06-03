@@ -78,6 +78,14 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Credenciais do Supabase embutidas no bundle do front (Vite).
+          # São valores PÚBLICOS (anon key também aparece no F12 do front web),
+          # mas externalizadas pra permitir rotação sem patchear código.
+          # Configurar nos Settings → Secrets and variables → Actions do repo:
+          #   VITE_SUPABASE_URL=https://ocbohmnmqtnrcwgvenus.supabase.co
+          #   VITE_SUPABASE_ANON_KEY=eyJ...
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           # Sem code signing por enquanto. O app vai abrir com aviso de
           # "developer não verificado" (Mac) ou "SmartScreen" (Windows).
           # Pra produção: configurar APPLE_CERTIFICATE / WINDOWS_CERTIFICATE.

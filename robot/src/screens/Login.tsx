@@ -7,12 +7,23 @@ import { tauri } from '../lib/tauri'
  * Tela de login. O robô NÃO armazena a senha — só a usa uma vez para obter o JWT
  * do Supabase Auth, que vai para o chaveiro do sistema operacional.
  *
- * URL e anon key hardcoded: são valores PÚBLICOS (anon key é embutida no front-end
- * do painel web e fica exposta no F12 do browser). Quem distribui o binário pode
- * dispensar a complexidade de injetar via env vars.
+ * URL e anon key vêm das env vars VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY,
+ * embutidas no bundle em tempo de build pelo Vite. No GitHub Actions, são
+ * fornecidas via secrets do repo (passados no env do step de build do tauri-action).
+ * Em dev local, ficam no .env.local (já no .gitignore).
+ *
+ * São valores PÚBLICOS: a anon key também aparece no front-end web sob o F12.
+ * A externalização aqui é só pra permitir rotação sem patchear código + pra
+ * configurar ambientes diferentes (staging/prod) sem rebuildar manualmente.
+ *
+ * Fallback hardcoded mantido pra cobrir o caso de build local sem .env.local.
  */
-const SUPABASE_URL = 'https://ocbohmnmqtnrcwgvenus.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jYm9obW5tcXRucmN3Z3ZlbnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjAyODYsImV4cCI6MjA5NDIzNjI4Nn0.50PLKUrs95I_L179296ZAskY1HEBYD0SKPuoEd-06hA'
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ??
+  'https://ocbohmnmqtnrcwgvenus.supabase.co'
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ??
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jYm9obW5tcXRucmN3Z3ZlbnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjAyODYsImV4cCI6MjA5NDIzNjI4Nn0.50PLKUrs95I_L179296ZAskY1HEBYD0SKPuoEd-06hA'
 
 export function Login({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState('')
