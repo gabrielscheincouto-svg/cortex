@@ -79,22 +79,40 @@ pub async fn login_password(
     struct User { id: String, email: String }
 
     let url = format!("{}/auth/v1/token?grant_type=password", supabase_url.trim_end_matches('/'));
-    let client = reqwest::Client::new();
+    tracing::info!(url = %url, email = %email, "[auth] iniciando login");
+
+    // Timeout explícito (20s) — evita o app ficar pendurado pra sempre
+    // se Supabase travar ou DNS/firewall bloquear silenciosamente.
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(20))
+        .build()?;
+
     let resp = client
         .post(&url)
         .header("apikey", supabase_anon_key)
         .header("Content-Type", "application/json")
         .json(&Req { email, password })
         .send()
-        .await?;
+        .await
+        .map_err(|e| {
+            tracing::error!(error = %e, "[auth] falha no reqwest::send");
+            e
+        })?;
 
-    if !resp.status().is_success() {
-        let status = resp.status();
+    let status = resp.status();
+    tracing::info!(status = %status, "[auth] resposta do Supabase");
+
+    if !status.is_success() {
         let body = resp.text().await.unwrap_or_default();
+        tracing::error!(status = %status, body = %body, "[auth] login rejeitado");
         return Err(RoboError::Auth(format!("login falhou ({status}): {body}")));
     }
 
-    let r: Resp = resp.json().await?;
+    let raw_body = resp.text().await?;
+    let r: Resp = serde_json::from_str(&raw_body).map_err(|e| {
+        tracing::error!(error = %e, body = %raw_body, "[auth] resposta com shape inesperado");
+        RoboError::Auth(format!("resposta inesperada do Supabase: {e}"))
+    })?;
     Ok(StoredCredentials {
         access_token: r.access_token,
         refresh_token: r.refresh_token,
