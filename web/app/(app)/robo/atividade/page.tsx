@@ -21,6 +21,51 @@ import { ago } from '@/lib/utils'
 
 export const revalidate = 0
 
+/**
+ * Carrega o release mais recente do robô (tag prefix "robot-v") da API do GitHub.
+ * Cache de 10 min — evita batidas no rate limit anônimo (60 req/h) e mantém os
+ * links sempre apontando pra última versão buildada pelo workflow robot-release.
+ */
+interface GithubAsset {
+  name: string
+  browser_download_url: string
+  size: number
+}
+interface RoboRelease {
+  tag: string
+  version: string
+  assets: GithubAsset[]
+}
+async function getLatestRoboRelease(): Promise<RoboRelease | null> {
+  try {
+    const res = await fetch(
+      'https://api.github.com/repos/gabrielscheincouto-svg/cortex/releases?per_page=30',
+      { next: { revalidate: 600 }, headers: { 'Accept': 'application/vnd.github+json' } },
+    )
+    if (!res.ok) return null
+    const releases = (await res.json()) as Array<{ tag_name: string; assets: GithubAsset[]; draft?: boolean; prerelease?: boolean }>
+    const robo = releases.find(r => r.tag_name.startsWith('robot-v') && !r.draft && !r.prerelease)
+    if (!robo) return null
+    return {
+      tag: robo.tag_name,
+      version: robo.tag_name.replace(/^robot-v/, ''),
+      assets: robo.assets,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** Pra escolher qual asset cai em cada plataforma sem casar com a versão exata
+ *  no nome (o Tauri carimba `0.1.2` no nome do bundle mesmo em tags posteriores). */
+function pickAsset(assets: GithubAsset[], pattern: RegExp): GithubAsset | undefined {
+  return assets.find(a => pattern.test(a.name))
+}
+
+function formatMB(bytes: number): string {
+  return (bytes / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB'
+}
+
 interface EventoRow {
   id: string
   entrega_id: string
@@ -44,6 +89,13 @@ export default async function AtividadeRoboPage({
   const supabase = createServerClient()
   const ctx = await loadOrgContext()
   if (!ctx) return null
+
+  // Release atual do robô (versão + links dos instaladores)
+  const release = await getLatestRoboRelease()
+  const dmgArm = release ? pickAsset(release.assets, /aarch64\.dmg$/i) : undefined
+  const dmgIntel = release ? pickAsset(release.assets, /x64\.dmg$/i) : undefined
+  const winExe = release ? pickAsset(release.assets, /x64-setup\.exe$/i) : undefined
+  const winMsi = release ? pickAsset(release.assets, /\.msi$/i) : undefined
 
   // Carrega últimos 100 arquivos anexados pelo robô
   let q = supabase
@@ -112,44 +164,70 @@ export default async function AtividadeRoboPage({
             <Download size={16} className="text-mind-600" />
             <p className="text-sm font-semibold text-ink-900">Instalar o Robô</p>
           </div>
-          <span className="font-mono text-[11px] text-ink-500">v0.1.2</span>
+          <span className="font-mono text-[11px] text-ink-500">{release ? `v${release.version}` : '—'}</span>
         </div>
         <div className="grid gap-3 p-5 sm:grid-cols-3">
-          <a
-            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.2/Cortex.Robo_0.1.2_aarch64.dmg"
-            className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
-          >
-            <Apple size={22} className="shrink-0 text-ink-700" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-900">Mac · Apple Silicon</p>
-              <p className="text-[11px] text-ink-500">.dmg · 5,4 MB · M1/M2/M3/M4/M5</p>
-            </div>
-            <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
-          </a>
+          {dmgArm && (
+            <a
+              href={dmgArm.browser_download_url}
+              className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+            >
+              <Apple size={22} className="shrink-0 text-ink-700" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink-900">Mac · Apple Silicon</p>
+                <p className="text-[11px] text-ink-500">.dmg · {formatMB(dmgArm.size)} · M1/M2/M3/M4/M5</p>
+              </div>
+              <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+            </a>
+          )}
 
-          <a
-            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.2/Cortex.Robo_0.1.2_x64-setup.exe"
-            className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
-          >
-            <Monitor size={22} className="shrink-0 text-ink-700" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-900">Windows</p>
-              <p className="text-[11px] text-ink-500">.exe · 3,6 MB · 10/11 (64 bits)</p>
-            </div>
-            <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
-          </a>
+          {dmgIntel && (
+            <a
+              href={dmgIntel.browser_download_url}
+              className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+            >
+              <Apple size={22} className="shrink-0 text-ink-700" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink-900">Mac · Intel</p>
+                <p className="text-[11px] text-ink-500">.dmg · {formatMB(dmgIntel.size)} · x86_64</p>
+              </div>
+              <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+            </a>
+          )}
 
-          <a
-            href="https://github.com/gabrielscheincouto-svg/cortex/releases/download/robot-v0.1.2/Cortex.Robo_0.1.2_x64_en-US.msi"
-            className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
-          >
-            <Monitor size={22} className="shrink-0 text-ink-700" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-900">Windows · MSI</p>
-              <p className="text-[11px] text-ink-500">.msi · 5,3 MB · corporativo / GPO</p>
-            </div>
-            <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
-          </a>
+          {winExe && (
+            <a
+              href={winExe.browser_download_url}
+              className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+            >
+              <Monitor size={22} className="shrink-0 text-ink-700" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink-900">Windows</p>
+                <p className="text-[11px] text-ink-500">.exe · {formatMB(winExe.size)} · 10/11 (64 bits)</p>
+              </div>
+              <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+            </a>
+          )}
+
+          {winMsi && (
+            <a
+              href={winMsi.browser_download_url}
+              className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 hover:border-mind-300 hover:bg-mind-50"
+            >
+              <Monitor size={22} className="shrink-0 text-ink-700" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink-900">Windows · MSI</p>
+                <p className="text-[11px] text-ink-500">.msi · {formatMB(winMsi.size)} · corporativo / GPO</p>
+              </div>
+              <Download size={14} className="shrink-0 text-ink-400 group-hover:text-mind-600" />
+            </a>
+          )}
+
+          {!release && (
+            <p className="col-span-full rounded-lg bg-amber-50 px-4 py-3 text-[12px] text-amber-800">
+              Não consegui carregar os instaladores da release agora. Acesse <a className="underline" href="https://github.com/gabrielscheincouto-svg/cortex/releases" target="_blank" rel="noreferrer">github.com/cortex/releases</a> direto.
+            </p>
+          )}
         </div>
         <div className="flex items-start gap-2 border-t border-black/5 bg-ink-50/50 px-5 py-3 text-[11px] text-ink-600">
           <AlertTriangle size={12} className="mt-0.5 shrink-0 text-gold-600" />
